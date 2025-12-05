@@ -1,0 +1,198 @@
+{
+    "city": {
+      "name": "Bellevue",
+      "region": "Washington State",
+      "mapCenter": {
+        "latitude": 47.6205,
+        "longitude": -122.2022
+      },
+      "mapBounds": {
+        "northeast": {
+          "latitude": 47.6400,
+          "longitude": -122.1700
+        },
+        "southwest": {
+          "latitude": 47.6000,
+          "longitude": -122.2350
+        }
+      },
+      "zoomLevel": 14.0
+    },
+    "theme": {
+      "name": "classic",
+      "primaryColor": "#2E7D32",
+      "secondaryColor": "#FFC107",
+      "accentColor": "#D32F2F",
+      "backgroundColor": "#FFFFFF",
+      "textColor": "#212121",
+      "fontFamily": "Roboto"
+    },
+    "businesses": [
+      {
+        "id": "downtown_coffee",
+        "name": "Downtown Coffee House",
+        "category": "Cafe",
+        "latitude": 47.6208,
+        "longitude": -122.2018,
+        "description": "Premium espresso drinks and pastries in the heart of downtown Bellevue.",
+        "pitch": "Your daily caffeine fix. Locally roasted beans.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1495474472645-4d71bcdd2085?w=400&h=300",
+        "address": "123 Main St, Bellevue, WA 98004",
+        "phoneNumber": "(425) 555-0101",
+        "website": "https://downtown-coffee.local",
+        "businessHours": {
+          "monday": "06:00-20:00",
+          "tuesday": "06:00-20:00",
+          "wednesday": "06:00-20:00",
+          "thursday": "06:00-20:00",
+          "friday": "06:00-21:00",
+          "saturday": "07:00-21:00",
+          "sunday": "07:00-19:00"
+        },
+        "isOpen": true,
+        "promotion": {
+          "title": "Free Coffee",
+          "description": "Show this screen for a free small coffee!",
+          "discount": "10%",
+          "expiresAt": "2025-12-31"
+        },
+        "loyaltyTier": {
+          "visitsRequired": 5,
+          "rewardDescription": "Own this property for 3 days!"
+        }
+      },
+      {
+        "id": "artisan_bakery",
+        "name": "Artisan Bakery",
+        "category": "Bakery",
+        "latitude": 47.6215,
+        "longitude": -122.2010,
+        "description": "Fresh-baked bread, pastries, and artisanal cakes made daily.",
+        "pitch": "Handcrafted goodness, baked fresh every morning.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=300",
+        "address": "456 Oak Ave, Bellevue, WA 98004",
+        "phoneNumber": "(425) 555-0102",
+        "website": "https://artisan-bakery.local",
+        "businessHours": {
+          "monday": "07:00-19:00",
+          "tuesday": "07:00-19:00",
+          "wednesday": "07:00-19:00",
+          "thursday": "07:00-19:00",
+          "friday": "07:00-20:00",
+          "saturday": "08:00-20:00",
+          "sunday": "08:00-18:00"
+        },
+        "isOpen": true,
+        "promotion": {
+          "title": "Buy One Get One",
+          "description": "Show this screen to get BOGO on croissants!",
+          "discount": "50%",
+          "expiresAt": "2025-12-25"
+        },
+        "loyaltyTier": {
+          "visitsRequired": 3,
+          "rewardDescription": "Own this property for 2 days!"
+        }
+      },
+      {
+        "id": "tech_store",
+        "name": "TechHub Electronics",
+        "category": "Electronics",
+        "latitude": 47.6200,
+        "longitude": -122.2030,
+        "description": "Latest gadgets, accessories, and tech support for all your devices.",
+        "pitch": "All the latest tech. Expert advice included.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300",
+        "address": "789 Tech Blvd, Bellevue, WA 98004",
+        "phoneNumber": "(425) 555-0103",
+        "website": "https://techhub-electronics.local",
+        "businessHours": {
+          "monday": "10:00-20:00",
+          "tuesday": "10:00-20:00",
+          "wednesday": "10:00-20:00",
+          "thursday": "10:00-20:00",
+          "friday": "10:00-21:00",
+          "saturday": "09:00-21:00",
+          "sunday": "10:00-19:00"
+        },
+        "isOpen": true,
+        "promotion": {
+          "title": "Tech Tuesday Special",
+          "description": "Show this to get $20 off any purchase over $100!",
+          "discount": "20%",
+          "expiresAt": "2026-01-31"
+        },
+        "loyaltyTier": {
+          "visitsRequired": 4,
+          "rewardDescription": "Own this property for 3 days!"
+        }
+      },
+      {
+        "id": "wellness_spa",
+        "name": "Zen Wellness Spa",
+        "category": "Spa",
+        "latitude": 47.6225,
+        "longitude": -122.2000,
+        "description": "Relaxation and rejuvenation through massage, facials, and wellness treatments.",
+        "pitch": "Find your zen. Premium wellness awaits.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1600334089393-b6b0aaf00249?w=400&h=300",
+        "address": "321 Serenity Lane, Bellevue, WA 98004",
+        "phoneNumber": "(425) 555-0104",
+        "website": "https://zen-wellness-spa.local",
+        "businessHours": {
+          "monday": "09:00-19:00",
+          "tuesday": "09:00-19:00",
+          "wednesday": "09:00-19:00",
+          "thursday": "09:00-19:00",
+          "friday": "09:00-20:00",
+          "saturday": "08:00-20:00",
+          "sunday": "10:00-17:00"
+        },
+        "isOpen": true,
+        "promotion": {
+          "title": "New Member Special",
+          "description": "First massage $30 off! Show this screen.",
+          "discount": "30%",
+          "expiresAt": "2025-12-31"
+        },
+        "loyaltyTier": {
+          "visitsRequired": 6,
+          "rewardDescription": "Own this property for 4 days!"
+        }
+      },
+      {
+        "id": "thai_restaurant",
+        "name": "Thai Palace",
+        "category": "Restaurant",
+        "latitude": 47.6190,
+        "longitude": -122.2040,
+        "description": "Authentic Thai cuisine with traditional recipes and fresh ingredients.",
+        "pitch": "Taste Thailand. Authentic flavors in every dish.",
+        "heroImageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300",
+        "address": "555 Cuisine St, Bellevue, WA 98004",
+        "phoneNumber": "(425) 555-0105",
+        "website": "https://thai-palace.local",
+        "businessHours": {
+          "monday": "11:00-22:00",
+          "tuesday": "11:00-22:00",
+          "wednesday": "11:00-22:00",
+          "thursday": "11:00-22:00",
+          "friday": "11:00-23:00",
+          "saturday": "12:00-23:00",
+          "sunday": "12:00-21:00"
+        },
+        "isOpen": true,
+        "promotion": {
+          "title": "Free Appetizer",
+          "description": "Free appetizer with any entree order. Show this!",
+          "discount": "Complimentary",
+          "expiresAt": "2025-12-20"
+        },
+        "loyaltyTier": {
+          "visitsRequired": 5,
+          "rewardDescription": "Own this property for 3 days!"
+        }
+      }
+    ]
+  }
+  
