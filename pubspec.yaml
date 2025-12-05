@@ -40,6 +40,10 @@ dependencies:
   cached_network_image: ^3.4.1
   geolocator: ^14.0.2
   google_maps_flutter: ^2.14.0
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0
+  firebase_ui_firestore: ^2.0.1
 
 dev_dependencies:
   flutter_test:
@@ -64,7 +68,23 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+    - assets/config/bellevue.json
+    - assets/images/logo.png
+    - assets/images/user_placeholder.png
+    - assets/images/map_marker.png
+    - assets/images/map_marker_selected.png
+    - assets/images/no_image_available.png
+    - assets/images/restaurant_placeholder.png
+    - assets/images/review_placeholder.png
+    - assets/images/food_placeholder.png
+    - assets/images/empty_state.png
+    - assets/images/error_state.png
+    - assets/images/splash_image.png
+    - assets/icons/heart_filled.png
+    - assets/icons/heart_outline.png
+    - assets/data/businesses.json
+
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

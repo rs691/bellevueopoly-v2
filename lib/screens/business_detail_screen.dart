@@ -53,7 +53,9 @@ class BusinessDetailScreen extends ConsumerWidget {
             slivers: [
               SliverAppBar(
                 expandedHeight: 250,
+                pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
+                  title: Text(business.name, style: const TextStyle(shadows: [BoxShadow(blurRadius: 8)])),
                   background: CachedNetworkImage(
                     imageUrl: business.heroImageUrl,
                     fit: BoxFit.cover,

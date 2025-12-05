@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/index.dart';
 import '../widgets/main_scaffold.dart';
+import '../screens/login_screen.dart';
+import '../screens/registration_screen.dart';
 
 // Navigator keys
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -9,8 +11,28 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/landing',
+  initialLocation: '/splash',
   routes: [
+    GoRoute(
+      path: '/splash',
+      builder: (context, state) => const SplashScreen(),
+    ),
+    GoRoute(
+      path: '/landing',
+      builder: (context, state) => const LandingScreen(),
+    ),
+    GoRoute(
+      path: '/welcome',
+      builder: (context, state) => const WelcomeBackScreen(),
+    ),
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegistrationScreen(),
+    ),
     // App shell
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
@@ -18,52 +40,31 @@ final appRouter = GoRouter(
         return MainScaffold(child: child);
       },
       routes: [
-        GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
         GoRoute(
-          path: '/stops',
+            path: '/',
+            builder: (context, state) => const HomeScreen(),
+            routes: [
+              GoRoute(
+                path: 'business/:id',
+                builder: (context, state) {
+                  final businessId = state.pathParameters['id']!;
+                  return BusinessDetailScreen(businessId: businessId);
+                },
+              ),
+            ]),
+        GoRoute(
+          path: '/map',
+          builder: (context, state) => const Center(child: Text('Map Screen')),
+        ),
+        GoRoute(
+          path: '/businesses',
           builder: (context, state) => const BusinessListScreen(),
         ),
         GoRoute(
           path: '/profile',
           builder: (context, state) => const ProfileScreen(),
         ),
-        // Placeholder routes for the other nav items
-        GoRoute(
-          path: '/scan',
-          builder: (context, state) =>
-              const Scaffold(body: Center(child: Text('Scan'))),
-        ),
-        GoRoute(
-          path: '/prizes',
-          builder: (context, state) =>
-              const Scaffold(body: Center(child: Text('Prizes'))),
-        ),
       ],
-    ),
-    // Top-level routes that don't need the main scaffold
-    GoRoute(
-      path: '/landing',
-      builder: (context, state) => const LandingScreen(),
-    ),
-    GoRoute(
-      path: '/welcome',
-      builder: (context, state) => const WelcomeScreen(),
-    ),
-    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-    GoRoute(
-      path: '/welcome-back',
-      builder: (context, state) => const WelcomeBackScreen(),
-    ),
-    GoRoute(
-      path: '/settings',
-      parentNavigatorKey: _rootNavigatorKey, // So it covers the scaffold
-      builder: (context, state) => const SettingsScreen(),
-    ),
-    GoRoute(
-      path: '/business/:id',
-      parentNavigatorKey: _rootNavigatorKey, // So it covers the scaffold
-      builder: (context, state) =>
-          BusinessDetailScreen(businessId: state.pathParameters['id']!),
     ),
   ],
 );

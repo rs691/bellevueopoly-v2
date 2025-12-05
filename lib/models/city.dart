@@ -17,10 +17,10 @@ class MapBounds extends Equatable {
     final northeast = json['northeast'] as Map<String, dynamic>;
     final southwest = json['southwest'] as Map<String, dynamic>;
     return MapBounds(
-      northeastLat: northeast['latitude'] as double,
-      northeastLng: northeast['longitude'] as double,
-      southwestLat: southwest['latitude'] as double,
-      southwestLng: southwest['longitude'] as double,
+      northeastLat: (northeast['latitude'] as num).toDouble(),
+      northeastLng: (northeast['longitude'] as num).toDouble(),
+      southwestLat: (southwest['latitude'] as num).toDouble(),
+      southwestLng: (southwest['longitude'] as num).toDouble(),
     );
   }
 
@@ -116,10 +116,10 @@ class CityConfig extends Equatable {
     return CityConfig(
       name: city['name'] as String,
       region: city['region'] as String,
-      mapCenterLat: mapCenter['latitude'] as double,
-      mapCenterLng: mapCenter['longitude'] as double,
+      mapCenterLat: (mapCenter['latitude'] as num).toDouble(),
+      mapCenterLng: (mapCenter['longitude'] as num).toDouble(),
       mapBounds: MapBounds.fromJson(city['mapBounds'] as Map<String, dynamic>),
-      zoomLevel: city['zoomLevel'] as double,
+      zoomLevel: (city['zoomLevel'] as num).toDouble(),
       theme: ThemeConfig.fromJson(json['theme'] as Map<String, dynamic>),
     );
   }
