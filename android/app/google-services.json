@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "490494751564",
+    "project_id": "roberts-web-apps",
+    "storage_bucket": "roberts-web-apps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:490494751564:android:1f506139b09cc729d495e9",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "490494751564-e649glgqerf11sen3tuqed1boc2cn541.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAM3-iyFcM06rNMVNwzLi228PYy3FvYiS4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "490494751564-e649glgqerf11sen3tuqed1boc2cn541.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

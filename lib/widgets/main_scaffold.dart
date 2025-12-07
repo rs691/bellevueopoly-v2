@@ -22,14 +22,12 @@ class MainScaffold extends StatelessWidget {
     final location = GoRouterState.of(context).matchedLocation;
     if (location == '/') {
       return 0;
-    } else if (location.startsWith('/stops')) {
+    } else if (location.startsWith('/map')) {
       return 1;
-    } else if (location.startsWith('/scan')) {
+    } else if (location.startsWith('/businesses')) {
       return 2;
-    } else if (location.startsWith('/prizes')) {
-      return 3;
     } else if (location.startsWith('/profile')) {
-      return 4;
+      return 3;
     }
     return 0;
   }
@@ -40,15 +38,12 @@ class MainScaffold extends StatelessWidget {
         context.go('/');
         break;
       case 1:
-        context.go('/stops');
+        context.go('/map');
         break;
       case 2:
-        context.go('/scan');
+        context.go('/businesses');
         break;
       case 3:
-        context.go('/prizes');
-        break;
-      case 4:
         context.go('/profile');
         break;
     }

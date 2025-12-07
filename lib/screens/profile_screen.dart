@@ -1,15 +1,56 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/index.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../providers/user_data_provider.dart';
 import '../widgets/gradient_background.dart';
 import '../theme/app_theme.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
+  // Temporary function to upload business data
+  Future<void> _uploadBusinessData(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Starting business data upload...')),
+      );
+
+      final firestore = FirebaseFirestore.instance;
+      final businessesJson = await rootBundle.loadString('assets/data/businesses.json');
+      final businesses = jsonDecode(businessesJson) as List<dynamic>;
+
+      final batch = firestore.batch();
+      for (var businessData in businesses) {
+        final id = businessData['id'] as String;
+        if (id.isNotEmpty) {
+          final docRef = firestore.collection('businesses').doc(id);
+          batch.set(docRef, businessData as Map<String, dynamic>);
+        }
+      }
+
+      await batch.commit();
+
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('✓ Successfully uploaded all businesses to Firestore!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Error uploading data: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final player = ref.watch(playerProvider);
+    final userData = ref.watch(userDataProvider);
+    final FirebaseAuth auth = FirebaseAuth.instance;
 
     return GradientBackground(
       child: Scaffold(
@@ -19,35 +60,50 @@ class ProfileScreen extends ConsumerWidget {
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),
-        body: player == null
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
+        body: userData.when(
+          data: (userDoc) {
+            if (userDoc == null || !userDoc.exists) {
+              return const Center(child: Text('User not found.', style: TextStyle(color: Colors.white)));
+            }
+            final user = userDoc.data() as Map<String, dynamic>;
+            return SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    // Player avatar and name
-                    _buildHeader(context, player),
+                    _buildHeader(context, user),
                     const SizedBox(height: 24),
-                    // Stats grid
-                    _buildStatsGrid(player),
+                    _buildStatsGrid(user),
+                    const SizedBox(height: 32),
+                    _buildLogoutButton(context, auth),
                     const SizedBox(height: 24),
-                    // Owned properties
-                    _buildOwnedProperties(context, ref),
+                    const Divider(),
+                    const SizedBox(height: 24),
+                    // Temporary Upload Button
+                    ElevatedButton.icon(
+                      onPressed: () => _uploadBusinessData(context),
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Upload Business Data (Temporary)'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[700]),
+                    ),
                   ],
                 ),
-              ),
+              );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+        )
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, player) {
+  Widget _buildHeader(BuildContext context, Map<String, dynamic> user) {
     return Column(
       children: [
         CircleAvatar(
           radius: 50,
           backgroundColor: AppTheme.accentGreen,
           child: Text(
-            player.name[0],
+            user.containsKey('username') ? user['username'][0].toUpperCase() : 'U',
             style: const TextStyle(
               fontSize: 48,
               color: Colors.white,
@@ -57,18 +113,22 @@ class ProfileScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          player.name,
+          user.containsKey('username') ? user['username'] : 'User',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
         ),
         Text(
-          'Level ${player.level} Explorer', 
+          user.containsKey('email') ? user['email'] : '',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white70),
         ),
       ],
     );
   }
 
-  Widget _buildStatsGrid(player) {
+  Widget _buildStatsGrid(Map<String, dynamic> user) {
+    final propertiesOwned = user.containsKey('propertiesOwned') ? user['propertiesOwned'] as List : [];
+    final trophies = user.containsKey('trophies') ? user['trophies'] as List : [];
+    final totalVisits = user.containsKey('totalVisits') ? user['totalVisits'] : 0;
+
     return GridView.count(
       crossAxisCount: 3,
       shrinkWrap: true,
@@ -76,64 +136,24 @@ class ProfileScreen extends ConsumerWidget {
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
       children: [
-        _StatCard(title: 'Visits', value: player.totalVisits.toString()),
-        _StatCard(title: 'Properties', value: player.propertiesOwned.toString()),
-        _StatCard(title: 'Trophies', value: player.trophies.length.toString()),
+        _StatCard(title: 'Visits', value: totalVisits.toString()),
+        _StatCard(title: 'Properties', value: propertiesOwned.length.toString()),
+        _StatCard(title: 'Trophies', value: trophies.length.toString()),
       ],
     );
   }
 
-  Widget _buildOwnedProperties(BuildContext context, WidgetRef ref) {
-    final gameState = ref.watch(gameStateProvider);
-    final businesses = ref.watch(businessesProvider);
-
-    final ownedProperties = gameState.entries
-        .where((entry) => entry.value.isOwned)
-        .map((entry) => entry.key)
-        .toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Owned Properties (${ownedProperties.length})',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
-        ),
-        const SizedBox(height: 12),
-        businesses.when(
-          data: (businessList) {
-            final ownedBusinesses = businessList
-                .where((b) => ownedProperties.contains(b.id))
-                .toList();
-
-            if (ownedBusinesses.isEmpty) {
-              return const Text(
-                'You haven\'t acquired any properties yet. Keep exploring!',
-                style: TextStyle(color: Colors.white70),
-              );
-            }
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: ownedBusinesses.length,
-              itemBuilder: (context, index) {
-                final business = ownedBusinesses[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: const Icon(Icons.business, color: AppTheme.accentGreen),
-                    title: Text(business.name),
-                    subtitle: Text(business.category),
-                    trailing: const Icon(Icons.check_circle, color: Colors.green),
-                  ),
-                );
-              },
-            );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Text('Error: $err', style: const TextStyle(color: Colors.red)),
-        ),
-      ],
+  Widget _buildLogoutButton(BuildContext context, FirebaseAuth auth) {
+    return ElevatedButton.icon(
+      onPressed: () async {
+        await auth.signOut();
+      },
+      icon: const Icon(Icons.logout),
+      label: const Text('Logout'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppTheme.accentOrange,
+        foregroundColor: Colors.white,
+      ),
     );
   }
 }

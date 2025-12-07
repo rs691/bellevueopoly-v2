@@ -9,13 +9,21 @@ class AppTheme {
 
   // --- Themes -- -
   static final ThemeData theme = ThemeData(
-    primaryColor: primaryPurple,
-    scaffoldBackgroundColor: primaryPurple,
-    colorScheme: const ColorScheme.dark(
-      primary: accentGreen,
-      secondary: accentOrange,
-      surface: navBarBackground,
+    useMaterial3: true, // Enable Material 3
+    brightness: Brightness.dark,
+
+    // Define a modern, M3 color scheme from a seed color
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: primaryPurple,
+      brightness: Brightness.dark,
+      primary: accentGreen, // Keep brand green as primary
+      secondary: accentOrange, // Keep brand orange as secondary
+    ).copyWith(
+      surface: navBarBackground, // Ensure the nav bar color is used as the surface
     ),
+
+    scaffoldBackgroundColor: primaryPurple,
+
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -26,12 +34,15 @@ class AppTheme {
       ),
       iconTheme: IconThemeData(color: Colors.white),
     ),
+
+    // Updated BottomNavigationBarTheme for M3
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: navBarBackground,
+      // The background color is now controlled by `colorScheme.surface`.
+      type: BottomNavigationBarType.fixed,
       selectedItemColor: accentGreen,
       unselectedItemColor: Colors.white70,
-      type: BottomNavigationBarType.fixed,
     ),
+
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: accentGreen,
@@ -46,6 +57,7 @@ class AppTheme {
         ),
       ),
     ),
+
     textTheme: const TextTheme(
       headlineSmall: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       titleLarge: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
@@ -53,6 +65,7 @@ class AppTheme {
       bodyMedium: TextStyle(color: Colors.white70),
       labelSmall: TextStyle(color: Colors.white60),
     ),
+
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white.withOpacity(0.1),
@@ -62,9 +75,12 @@ class AppTheme {
       ),
       hintStyle: const TextStyle(color: Colors.white54),
     ),
+
     cardTheme: CardThemeData(
       elevation: 2,
-      color: Colors.white.withOpacity(0.1),
+      // In M3, Card color is derived from the color scheme.
+      // This uses a color that is slightly lighter than the main surface.
+      color: const Color(0xFF2a1d4a),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
   );

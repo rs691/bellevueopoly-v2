@@ -1,6 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:math' as math;
+import '../widgets/gradient_background.dart';
+import '../widgets/glassmorphic_card.dart'; // Assuming you might want to use this for the dialog
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -11,124 +13,67 @@ class LandingScreen extends StatefulWidget {
 
 class _LandingScreenState extends State<LandingScreen>
     with TickerProviderStateMixin {
-  late AnimationController _diceController;
-  late AnimationController _rotationController;
-  late AnimationController _glowController;
   late AnimationController _particleController;
-  final List<Particle> _particles = [];
-  final List<Coin> _coins = [];
+  final List<_Particle> _particles = [];
 
   @override
   void initState() {
     super.initState();
-
-    // Dice bounce animation
-    _diceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat(reverse: true);
-
-    // Dice rotation animation
-    _rotationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat();
-
-    // Glow animation for text
-    _glowController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..repeat(reverse: true);
-
-    // Particle animation controller
     _particleController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
+      duration: const Duration(seconds: 2),
     )..repeat();
-
-    // Initialize particles
     _initializeParticles();
-    _initializeCoins();
   }
 
   void _initializeParticles() {
     for (int i = 0; i < 15; i++) {
       _particles.add(
-        Particle(
+        _Particle(
           color: _getRandomColor(),
-          size: math.Random().nextDouble() * 20 + 10,
+          size: math.Random().nextDouble() * 15 + 5,
           offsetX: math.Random().nextDouble(),
           offsetY: math.Random().nextDouble(),
-          speed: math.Random().nextDouble() * 0.5 + 0.3,
+          speed: math.Random().nextDouble() * 0.4 + 0.2,
         ),
       );
     }
   }
 
-  void _initializeCoins() {
-    for (int i = 0; i < 8; i++) {
-      _coins.add(Coin(offsetX: math.Random().nextDouble(), delay: i * 0.5));
-    }
-  }
-
   Color _getRandomColor() {
     final colors = [
-      Colors.pinkAccent.withOpacity(0.4),
-      Colors.purpleAccent.withOpacity(0.4),
-      Colors.orangeAccent.withOpacity(0.4),
+      Colors.pinkAccent.withOpacity(0.3),
+      Colors.purpleAccent.withOpacity(0.3),
+      Colors.orangeAccent.withOpacity(0.3),
     ];
     return colors[math.Random().nextInt(colors.length)];
   }
 
   @override
   void dispose() {
-    _diceController.dispose();
-    _rotationController.dispose();
-    _glowController.dispose();
     _particleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment.center,
-            radius: 1.0,
-            colors: [Color(0xFF2d1b4e), Color(0xFF1a0d33), Color(0xFF0a0015)],
-            stops: [0.0, 0.5, 1.0],
-          ),
-        ),
-        child: Stack(
+    return GradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
           children: [
-            // Animated background particles
+            // Particle Animation
             ..._buildParticles(),
-
-            // Falling coins
-            ..._buildCoins(),
-
-            // Main content
+            // Main UI Content
             SafeArea(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Spacer(flex: 1),
-
-                  // Animated Dice
-                  _buildAnimatedDice(),
-
+                  _buildStaticDice(),
                   const SizedBox(height: 40),
-
-                  // Title with glow effect
-                  _buildGlowingTitle(),
-
+                  _buildStaticTitle(),
                   const SizedBox(height: 12),
-
-                  // Tagline
                   const Text(
                     'Roll the dice, explore your city',
                     style: TextStyle(
@@ -138,31 +83,22 @@ class _LandingScreenState extends State<LandingScreen>
                       letterSpacing: 1,
                     ),
                   ),
-
                   const Spacer(flex: 1),
-
-                  // Play Now button
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: _buildPlayNowButton(),
+                    child: _buildPlayNowButton(context),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // Create Account link
-                  GestureDetector(
-                    onTap: () => context.go('/welcome'),
-                    child: Text(
+                  TextButton(
+                    onPressed: () => context.go('/welcome'),
+                    child: const Text(
                       'Create Account',
                       style: TextStyle(
-                        color: Colors.cyanAccent.shade100,
+                        color: Colors.white70,
                         decoration: TextDecoration.underline,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 40),
                 ],
               ),
@@ -173,133 +109,117 @@ class _LandingScreenState extends State<LandingScreen>
     );
   }
 
-  Widget _buildAnimatedDice() {
-    return AnimatedBuilder(
-      animation: Listenable.merge([_diceController, _rotationController]),
-      builder: (context, child) {
-        return Transform.scale(
-          scale: 1.0 + (_diceController.value * 0.15),
-          child: Transform.rotate(
-            angle: _rotationController.value * 2 * math.pi,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFe879f9), Color(0xFF9333ea)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+  List<Widget> _buildParticles() {
+    return _particles.map((particle) {
+      return AnimatedBuilder(
+        animation: _particleController,
+        builder: (context, child) {
+          final screenHeight = MediaQuery.of(context).size.height;
+          final animValue = (_particleController.value + particle.offsetY) % 1.0;
+          return Positioned(
+            left: MediaQuery.of(context).size.width * particle.offsetX,
+            top: screenHeight * animValue - particle.size,
+            child: Opacity(
+              opacity: (math.sin(animValue * math.pi) * 0.5).clamp(0.0, 0.5),
+              child: Container(
+                width: particle.size,
+                height: particle.size,
+                decoration: BoxDecoration(
+                  color: particle.color,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: particle.color.withOpacity(0.4),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFec4899).withOpacity(0.6),
-                    blurRadius: 40,
-                    spreadRadius: 5,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  // Dice dots (showing 6)
-                  ...List.generate(6, (index) {
-                    final positions = [
-                      const Alignment(-0.6, -0.6),
-                      const Alignment(-0.6, 0.0),
-                      const Alignment(-0.6, 0.6),
-                      const Alignment(0.6, -0.6),
-                      const Alignment(0.6, 0.0),
-                      const Alignment(0.6, 0.6),
-                    ];
-                    return Align(
-                      alignment: positions[index],
-                      child: Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1a0d33),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                ],
               ),
             ),
+          );
+        },
+      );
+    }).toList();
+  }
+
+  Widget _buildStaticDice() {
+    return Container(
+      width: 150,
+      height: 150,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFe879f9), Color(0xFF9333ea)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFec4899).withOpacity(0.6),
+            blurRadius: 40,
+            spreadRadius: 5,
           ),
-        );
-      },
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: const Icon(Icons.casino, size: 80, color: Colors.white),
     );
   }
 
-  Widget _buildGlowingTitle() {
-    return AnimatedBuilder(
-      animation: _glowController,
-      builder: (context, child) {
-        final glowOpacity1 = 0.8 + _glowController.value * 0.2;
-        final glowOpacity2 = 0.6 + _glowController.value * 0.2;
-        return Column(
-          children: [
-            Text(
-              'CHAMBER',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 48,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1,
-                height: 0.9,
-                shadows: [
-                  Shadow(
-                    color: const Color(0xFFec4899).withOpacity(glowOpacity1),
-                    blurRadius: 20 + _glowController.value * 10,
-                  ),
-                  Shadow(
-                    color: const Color(0xFFa855f7).withOpacity(glowOpacity2),
-                    blurRadius: 40 + _glowController.value * 20,
-                  ),
-                  const Shadow(color: Colors.black38, offset: Offset(4, 4)),
-                ],
+  Widget _buildStaticTitle() {
+    return Column(
+      children: [
+        Text(
+          'CHAMBER',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 48,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+            height: 0.9,
+            shadows: [
+              Shadow(
+                color: const Color(0xFFec4899).withOpacity(0.8),
+                blurRadius: 20,
               ),
-            ),
-            Text(
-              'OPOLY',
-              style: TextStyle(
-                color: const Color(0xFFa855f7),
-                fontSize: 48,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1,
-                height: 0.9,
-                shadows: [
-                  Shadow(
-                    color: const Color(0xFFec4899).withOpacity(glowOpacity1),
-                    blurRadius: 20 + _glowController.value * 10,
-                  ),
-                  Shadow(
-                    color: const Color(0xFFa855f7).withOpacity(glowOpacity2),
-                    blurRadius: 40 + _glowController.value * 20,
-                  ),
-                  const Shadow(color: Colors.black38, offset: Offset(4, 4)),
-                ],
+              Shadow(
+                color: const Color(0xFFa855f7).withOpacity(0.6),
+                blurRadius: 40,
               ),
-            ),
-          ],
-        );
-      },
+              const Shadow(color: Colors.black38, offset: Offset(4, 4)),
+            ],
+          ),
+        ),
+        Text(
+          'OPOLY',
+          style: TextStyle(
+            color: const Color(0xFFa855f7),
+            fontSize: 48,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+            height: 0.9,
+            shadows: [
+              Shadow(
+                color: const Color(0xFFec4899).withOpacity(0.8),
+                blurRadius: 20,
+              ),
+              Shadow(
+                color: const Color(0xFFa855f7).withOpacity(0.6),
+                blurRadius: 40,
+              ),
+              const Shadow(color: Colors.black38, offset: Offset(4, 4)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildPlayNowButton() {
+  Widget _buildPlayNowButton(BuildContext context) {
     return Container(
       width: double.infinity,
       height: 70,
@@ -324,7 +244,7 @@ class _LandingScreenState extends State<LandingScreen>
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => context.go('/'),
+          onTap: () => _showAuthPrompt(context),
           borderRadius: BorderRadius.circular(15),
           child: const Center(
             child: Text(
@@ -342,104 +262,82 @@ class _LandingScreenState extends State<LandingScreen>
     );
   }
 
-  List<Widget> _buildParticles() {
-    return _particles.map((particle) {
-      return AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          final screenHeight = MediaQuery.of(context).size.height;
-          final animValue =
-              (_particleController.value + particle.offsetY) % 1.0;
-
-          return Positioned(
-            left: MediaQuery.of(context).size.width * particle.offsetX,
-            top: screenHeight * animValue - particle.size,
-            child: Opacity(
-              opacity: (math.sin(animValue * math.pi) * 0.6).clamp(0.0, 0.6),
-              child: Container(
-                width: particle.size,
-                height: particle.size,
-                decoration: BoxDecoration(
-                  color: particle.color,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: particle.color.withOpacity(0.5),
-                      blurRadius: 10,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    }).toList();
-  }
-
-  List<Widget> _buildCoins() {
-    return _coins.map((coin) {
-      return AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          final screenHeight = MediaQuery.of(context).size.height;
-          final animValue =
-              ((_particleController.value * coin.speed) + coin.delay) % 1.0;
-          final rotation = animValue * 4 * math.pi;
-
-          return Positioned(
-            left: MediaQuery.of(context).size.width * coin.offsetX,
-            top: screenHeight * animValue - 40,
-            child: Opacity(
-              opacity: animValue < 0.1 || animValue > 0.9 ? 0.0 : 1.0,
-              child: Transform.rotate(
-                angle: rotation,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFfbbf24), Color(0xFFf59e0b)],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFfbbf24).withOpacity(0.4),
-                        blurRadius: 10,
+  void _showAuthPrompt(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Authentication',
+      transitionDuration: const Duration(milliseconds: 500),
+      pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final tween = Tween<double>(begin: 0.8, end: 1.0);
+        return ScaleTransition(
+          scale: tween.animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeInOutBack),
+          ),
+          child: FadeTransition(
+            opacity: animation,
+            child: AlertDialog(
+              backgroundColor: Colors.transparent,
+              contentPadding: EdgeInsets.zero,
+              content: GlassmorphicCard(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Join the Adventure!',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Please create an account or log in to start playing.',
+                        style: TextStyle(color: Colors.white70),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.go('/login');
+                        },
+                        child: const Text('Log In'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.go('/register');
+                        },
+                        child: const Text('Create Account'),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-          );
-        },
-      );
-    }).toList();
+          ),
+        );
+      },
+    );
   }
 }
 
-// Helper classes for particles and coins
-class Particle {
+class _Particle {
   final Color color;
   final double size;
   final double offsetX;
   final double offsetY;
   final double speed;
 
-  Particle({
+  _Particle({
     required this.color,
     required this.size,
     required this.offsetX,
     required this.offsetY,
     required this.speed,
   });
-}
-
-class Coin {
-  final double offsetX;
-  final double delay;
-  final double speed;
-
-  Coin({required this.offsetX, required this.delay, this.speed = 0.3});
 }
