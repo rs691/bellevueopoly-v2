@@ -1,41 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/index.dart';
-import '../widgets/business_card.dart';
 import '../widgets/gradient_background.dart';
+import '../theme/app_theme.dart';
 
 class BusinessListScreen extends ConsumerWidget {
   const BusinessListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final businesses = ref.watch(businessesProvider);
+    final businessesAsync = ref.watch(businessesProvider);
 
     return GradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title: const Text('Stops'),
+          title: const Text('All Businesses'),
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),
-        body: businesses.when(
-          data: (businessList) {
+        body: businessesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Error: $err')),
+          data: (businesses) {
             return ListView.builder(
-              padding: const EdgeInsets.all(8.0),
-              itemCount: businessList.length,
+              itemCount: businesses.length,
               itemBuilder: (context, index) {
-                return BusinessCard(business: businessList[index]);
+                final business = businesses[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  color: AppTheme.navBarBackground.withOpacity(0.8),
+                  child: ListTile(
+                    title: Text(business.name, style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(business.category, style: const TextStyle(color: Colors.white70)),
+                    trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                    onTap: () => context.go('/business/${business.id}'),
+                  ),
+                );
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(
-            child: Text(
-              'Error: $err',
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
         ),
       ),
     );

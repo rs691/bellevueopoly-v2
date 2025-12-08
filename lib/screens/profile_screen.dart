@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/user_data_provider.dart';
 import '../widgets/gradient_background.dart';
@@ -63,7 +64,8 @@ class ProfileScreen extends ConsumerWidget {
         body: userData.when(
           data: (userDoc) {
             if (userDoc == null || !userDoc.exists) {
-              return const Center(child: Text('User not found.', style: TextStyle(color: Colors.white)));
+              // This can happen briefly on logout, so we show a loading indicator.
+              return const Center(child: CircularProgressIndicator());
             }
             final user = userDoc.data() as Map<String, dynamic>;
             return SingleChildScrollView(
@@ -147,6 +149,9 @@ class ProfileScreen extends ConsumerWidget {
     return ElevatedButton.icon(
       onPressed: () async {
         await auth.signOut();
+        // Go back to the landing screen after logout.
+        // The router's redirect logic will handle the rest.
+        context.go('/landing');
       },
       icon: const Icon(Icons.logout),
       label: const Text('Logout'),
