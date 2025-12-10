@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:myapp/router/app_router.dart'; // KEEP this as your primary router import
 import 'firebase_options.dart';
-import 'router/app_router.dart';
-import 'theme/app_theme.dart';
+import '../theme/app_theme.dart'; // Add this import for AppTheme
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +21,7 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     return MaterialApp.router(
       title: 'Bellevueopoly',
-      theme: AppTheme.theme,
+      theme: AppTheme.theme, // Now AppTheme.theme should be recognized
       routerConfig: router,
     );
   }

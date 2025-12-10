@@ -21,7 +21,7 @@ class WelcomeScreen extends StatelessWidget {
                 children: [
                   const Spacer(flex: 2),
                   const Icon(
-                    Icons.explore, 
+                    Icons.explore,
                     size: 80,
                     color: Colors.white,
                   ),
@@ -55,7 +55,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => context.go('/login'), 
+                    onPressed: () => context.go('/login'),
                     child: const Text(
                       'Already have an account? Log In',
                       style: TextStyle(color: Colors.white70),

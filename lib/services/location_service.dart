@@ -46,11 +46,11 @@ class LocationService {
   }
 
   Future<double> calculateDistance(
-    double lat1,
-    double lng1,
-    double lat2,
-    double lng2,
-  ) async {
+      double lat1,
+      double lng1,
+      double lat2,
+      double lng2,
+      ) async {
     return Geolocator.distanceBetween(lat1, lng1, lat2, lng2);
   }
 }

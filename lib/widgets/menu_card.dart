@@ -40,20 +40,20 @@ class _AnimatedMenuCardState extends State<AnimatedMenuCard> {
           decoration: BoxDecoration(
             gradient: _isHovered
                 ? const LinearGradient(
-                    colors: [Color(0xFFa855f7), Color(0xFF7c3aed)],
-                  )
+              colors: [Color(0xFFa855f7), Color(0xFF7c3aed)],
+            )
                 : const LinearGradient(
-                    colors: [Color(0xFF3b2a5a), Color(0xFF2a1d4a)],
-                  ),
+              colors: [Color(0xFF3b2a5a), Color(0xFF2a1d4a)],
+            ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: _isHovered
                 ? [
-                    BoxShadow(
-                      color: const Color(0xFFa855f7).withOpacity(0.5),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                    ),
-                  ]
+              BoxShadow(
+                color: const Color(0xFFa855f7).withOpacity(0.5),
+                blurRadius: 15,
+                spreadRadius: 2,
+              ),
+            ]
                 : [],
           ),
           child: Column(

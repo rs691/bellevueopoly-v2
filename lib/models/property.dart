@@ -34,12 +34,12 @@ class Property extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'businessId': businessId,
-        'ownerId': ownerId,
-        'visitCount': visitCount,
-        'acquiredAt': acquiredAt?.toIso8601String(),
-        'expiresAt': expiresAt?.toIso8601String(),
-      };
+    'businessId': businessId,
+    'ownerId': ownerId,
+    'visitCount': visitCount,
+    'acquiredAt': acquiredAt?.toIso8601String(),
+    'expiresAt': expiresAt?.toIso8601String(),
+  };
 
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(

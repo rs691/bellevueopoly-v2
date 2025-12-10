@@ -203,7 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                       // Link to registration
                       TextButton(
-                        onPressed: () => context.go('/register'), 
+                        onPressed: () => context.go('/register'),
                         child: const Text(
                           "Don't have an account? Sign up",
                           style: TextStyle(color: Colors.white70),

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmf;
-import '../models/index.dart';
-import '../providers/index.dart';
+import 'package:myapp/models/business.dart'; // Updated import to use the correct Business model
+import '../providers/index.dart'; // Assuming businessesProvider is correctly defined here
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -29,16 +29,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void _updateMarkers() {
     ref.read(businessesProvider).whenData((businesses) {
-        setState(() {
-            _markers = businesses
-                .map((business) => gmf.Marker(
-                    markerId: gmf.MarkerId(business.id),
-                    position: gmf.LatLng(business.location.latitude, business.location.longitude),
-                    infoWindow: gmf.InfoWindow(title: business.name, onTap: () => context.go('/business/${business.id}')),
-                    onTap: () => context.go('/business/${business.id}'),
-                ))
-                .toSet();
-        });
+      setState(() {
+        _markers = businesses
+            .where((business) => business.location != null) // Only include businesses with location
+            .map((business) => gmf.Marker(
+          markerId: gmf.MarkerId(business.id),
+          position: gmf.LatLng(business.location!.latitude, business.location!.longitude), // Null check added
+          infoWindow: gmf.InfoWindow(title: business.name, onTap: () => context.go('/business/${business.id}')),
+          onTap: () => context.go('/business/${business.id}'),
+        ))
+            .toSet();
+      });
     });
   }
 
@@ -98,6 +99,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             itemCount: businesses.length,
             itemBuilder: (context, index) {
               final business = businesses[index];
+              // Filter businesses without location if they shouldn't appear in the sheet either
+              if (business.location == null) return const SizedBox.shrink();
               return _BusinessCard(
                 business: business,
                 onTap: () => context.go('/business/${business.id}'),
@@ -131,7 +134,10 @@ class _BusinessCard extends StatelessWidget {
               children: [
                 Text(business.name, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 4),
-                Text(business.category, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  business.category ?? 'Uncategorized', // Null check and default value
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),

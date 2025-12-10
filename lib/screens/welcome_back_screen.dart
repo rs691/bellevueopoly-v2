@@ -19,7 +19,7 @@ class WelcomeBackScreen extends StatelessWidget {
               children: [
                 const Spacer(flex: 2),
                 const Icon(
-                  Icons.lock_open, 
+                  Icons.lock_open,
                   size: 80,
                   color: Colors.white,
                 ),
@@ -57,7 +57,7 @@ class WelcomeBackScreen extends StatelessWidget {
                 ),
                 const Spacer(flex: 3),
                 TextButton(
-                  onPressed: () => context.go('/welcome'), 
+                  onPressed: () => context.go('/welcome'),
                   child: const Text(
                     'Don\'t have an account? Sign Up',
                     style: TextStyle(color: Colors.white70),

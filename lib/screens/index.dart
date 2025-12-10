@@ -5,7 +5,7 @@ export 'home_screen.dart';
 export 'business_detail_screen.dart';
 export 'profile_screen.dart';
 export 'welcome_screen.dart';
-export 'settings_screen.dart';
+//export 'settings_screen.dart';
 export 'business_list_screen.dart';
 export 'login_screen.dart';
 export 'registration_screen.dart';

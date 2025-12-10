@@ -25,10 +25,10 @@ class ParticlePainter extends CustomPainter {
     for (final particle in particles) {
       final dx =
           size.width * particle.x +
-          math.sin(animationValue * math.pi * 2 + particle.phase) * 25;
+              math.sin(animationValue * math.pi * 2 + particle.phase) * 25;
       final dy =
           size.height * particle.y +
-          math.cos(animationValue * math.pi * 2 + particle.phase) * 25;
+              math.cos(animationValue * math.pi * 2 + particle.phase) * 25;
 
       canvas.drawCircle(Offset(dx, dy), particle.radius, paint);
     }

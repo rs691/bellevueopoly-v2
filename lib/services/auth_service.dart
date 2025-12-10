@@ -24,7 +24,7 @@ class AuthService {
         email: email,
         password: password,
       );
-      
+
       // Create a new user document in Firestore
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'username': username,

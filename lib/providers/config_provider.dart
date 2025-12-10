@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/index.dart';
-import '../services/index.dart';
+import 'package:myapp/models/city.dart'; // Specific import for CityConfig
+import 'package:myapp/models/business.dart'; // Specific import for Business
+import 'package:myapp/services/config_service.dart'; // Specific import for ConfigService
 
 // ConfigService singleton provider
 final configServiceProvider = Provider<ConfigService>((ref) {
@@ -23,9 +24,9 @@ final businessesProvider = FutureProvider<List<Business>>((ref) async {
 
 // Single business provider
 final businessByIdProvider = FutureProvider.family<Business?, String>((
-  ref,
-  id,
-) async {
+    ref,
+    id,
+    ) async {
   final configService = ref.watch(configServiceProvider);
   await configService.initialize('assets/config/bellevue.json');
   return configService.getBusinessById(id);

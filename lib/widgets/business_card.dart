@@ -24,7 +24,7 @@ class BusinessCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                business.address,
+                business.address ?? '',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],

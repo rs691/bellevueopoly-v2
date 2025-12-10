@@ -40,7 +40,7 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen>
     _initializeParticles();
   }
 
-    void _initializeParticles() {
+  void _initializeParticles() {
     for (int i = 0; i < 15; i++) {
       _particles.add(
         _Particle(

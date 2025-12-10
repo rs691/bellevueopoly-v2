@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import '../models/index.dart';
+import 'package:myapp/models/business.dart';
+import 'package:myapp/models/city.dart'; // Import the correct CityConfig
+
+// Removed the placeholder CityConfig class from here
 
 class ConfigService {
   static final ConfigService _instance = ConfigService._internal();
@@ -19,12 +22,12 @@ class ConfigService {
       final jsonString = await rootBundle.loadString(configPath);
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
 
-      _cityConfig = CityConfig.fromJson(jsonData);
+      _cityConfig = CityConfig.fromJson(jsonData); // This will now use CityConfig from models/city.dart
 
-      final businessesJson = jsonData['businesses'] as List<dynamic>;
+      final businessesJson = jsonData['businesses'] as List<dynamic>?;
       _businesses = businessesJson
-          .map((b) => Business.fromJson(b as Map<String, dynamic>))
-          .toList();
+          ?.map((b) => Business.fromJson(b as Map<String, dynamic>))
+          .toList() ?? [];
     } catch (e) {
       throw Exception('Failed to load config from $configPath: $e');
     }

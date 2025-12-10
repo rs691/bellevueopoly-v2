@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/index.dart';
+import '../models/business.dart';
+import 'package:flutter/material.dart';
+import '../models/business.dart'; // Added import for the correct Business model
+import '../providers/index.dart'; // Assuming businessesProvider is here
 import '../widgets/gradient_background.dart';
 import '../theme/app_theme.dart';
 
@@ -33,7 +36,7 @@ class BusinessListScreen extends ConsumerWidget {
                   color: AppTheme.navBarBackground.withOpacity(0.8),
                   child: ListTile(
                     title: Text(business.name, style: const TextStyle(color: Colors.white)),
-                    subtitle: Text(business.category, style: const TextStyle(color: Colors.white70)),
+                    subtitle: Text(business.category ?? 'Uncategorized', style: const TextStyle(color: Colors.white70)), // Null check
                     trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
                     onTap: () => context.go('/business/${business.id}'),
                   ),

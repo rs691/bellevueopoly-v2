@@ -55,20 +55,20 @@ class ProfileScreen extends ConsumerWidget {
 
     return GradientBackground(
       child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Profile'),
           backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-        body: userData.when(
-          data: (userDoc) {
-            if (userDoc == null || !userDoc.exists) {
-              // This can happen briefly on logout, so we show a loading indicator.
-              return const Center(child: CircularProgressIndicator());
-            }
-            final user = userDoc.data() as Map<String, dynamic>;
-            return SingleChildScrollView(
+          appBar: AppBar(
+            title: const Text('Profile'),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+          body: userData.when(
+            data: (userDoc) {
+              if (userDoc == null || !userDoc.exists) {
+                // This can happen briefly on logout, so we show a loading indicator.
+                return const Center(child: CircularProgressIndicator());
+              }
+              final user = userDoc.data() as Map<String, dynamic>;
+              return SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
@@ -90,10 +90,10 @@ class ProfileScreen extends ConsumerWidget {
                   ],
                 ),
               );
-          },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
-        )
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+          )
       ),
     );
   }
