@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:myapp/widgets/navigation_box.dart';
+import '../widgets/navigation_box.dart';
+import '../router/app_router.dart';
 
 class MobileLandingScreen extends StatelessWidget {
   const MobileLandingScreen({super.key});
@@ -11,6 +12,7 @@ class MobileLandingScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Welcome'),
         centerTitle: true,
+        automaticallyImplyLeading: false, // Prevents back button on home
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -19,30 +21,43 @@ class MobileLandingScreen extends StatelessWidget {
           crossAxisSpacing: 16.0,
           mainAxisSpacing: 16.0,
           children: [
+            // 1. Map Tab
             NavigationBox(
-              icon: Icons.star,
+              icon: Icons.map,
               label: 'Stop Hub',
-              onTap: () => context.go('/stop_hub'),
+              onTap: () => context.go(AppRoutes.map),
             ),
+
+            // 2. Business List Tab (Renamed per request)
             NavigationBox(
-              icon: Icons.people,
-              label: 'Near Me',
-              onTap: () => context.go('/near_me'),
+              icon: Icons.store,
+              label: 'Boulevard Partners',
+              onTap: () => context.go(AppRoutes.businesses),
             ),
+
+            // 3. Prizes (Placeholder)
             NavigationBox(
               icon: Icons.emoji_events,
               label: 'Prizes',
-              onTap: () => context.go('/prizes'),
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Prizes coming soon!')),
+              ),
             ),
+
+            // 4. FAQ (Placeholder)
             NavigationBox(
               icon: Icons.help_outline,
               label: 'FAQ',
-              onTap: () => context.go('/faq'),
+              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('FAQ coming soon!')),
+              ),
             ),
+
+            // 5. Profile Tab
             NavigationBox(
               icon: Icons.person,
               label: 'My Account',
-              onTap: () => context.go('/my_account'),
+              onTap: () => context.go(AppRoutes.profile),
             ),
           ],
         ),

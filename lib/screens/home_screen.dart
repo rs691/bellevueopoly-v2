@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmf;
-import 'package:myapp/models/business.dart'; // Updated import to use the correct Business model
-import '../providers/index.dart'; // Assuming businessesProvider is correctly defined here
+import '../models/business_model.dart';
+import '../providers/config_provider.dart'; // FIX: Use correct provider import
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -19,40 +19,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _updateMarkers();
+    // No need to call _updateMarkers here manually if we watch the provider below,
+    // but usually good to sync once data is loaded.
   }
 
   void _onMapCreated(gmf.GoogleMapController controller) {
     _mapController = controller;
-    _updateMarkers();
-  }
-
-  void _updateMarkers() {
-    ref.read(businessesProvider).whenData((businesses) {
-      setState(() {
-        _markers = businesses
-            .where((business) => business.location != null) // Only include businesses with location
-            .map((business) => gmf.Marker(
-          markerId: gmf.MarkerId(business.id),
-          position: gmf.LatLng(business.location!.latitude, business.location!.longitude), // Null check added
-          infoWindow: gmf.InfoWindow(title: business.name, onTap: () => context.go('/business/${business.id}')),
-          onTap: () => context.go('/business/${business.id}'),
-        ))
-            .toSet();
-      });
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // 1. Watch the providers
     final businessesAsync = ref.watch(businessesProvider);
     final cityConfigAsync = ref.watch(cityConfigProvider);
 
+    // 2. Handle Marker Logic when data arrives
+    ref.listen<AsyncValue<List<Business>>>(businessesProvider, (previous, next) {
+      next.whenData((businesses) {
+        setState(() {
+          _markers = businesses
+          // FIX: The new model uses latitude/longitude directly, not business.location
+              .where((b) => b.latitude != 0.0 && b.longitude != 0.0)
+              .map((business) => gmf.Marker(
+            markerId: gmf.MarkerId(business.id),
+            // FIX: Direct access to fields
+            position: gmf.LatLng(business.latitude, business.longitude),
+            infoWindow: gmf.InfoWindow(
+              title: business.name,
+              onTap: () => context.go('/map/business/${business.id}'),
+            ),
+            onTap: () => context.go('/map/business/${business.id}'),
+          ))
+              .toSet();
+        });
+      });
+    });
+
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.transparent, // Allows map to show behind
       appBar: AppBar(
         title: const Text('BELLEVUEOPOLY'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline),
@@ -64,18 +73,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error loading city: $err')),
         data: (cityConfig) {
-          final initialPosition = gmf.LatLng(cityConfig.mapCenterLat, cityConfig.mapCenterLng);
+          // FIX: Your new CityConfig model doesn't have lat/lng/zoom.
+          // We will use hardcoded defaults for Bellevue, NE for now.
+          const double defaultLat = 41.15;
+          const double defaultLng = -95.92;
+          const double defaultZoom = 13.0;
+
+          final initialPosition = gmf.LatLng(defaultLat, defaultLng);
+
           return Stack(
             children: [
               gmf.GoogleMap(
                 onMapCreated: _onMapCreated,
-                initialCameraPosition: gmf.CameraPosition(target: initialPosition, zoom: cityConfig.zoomLevel),
+                initialCameraPosition: gmf.CameraPosition(
+                  target: initialPosition,
+                  zoom: defaultZoom,
+                ),
                 markers: _markers,
                 myLocationEnabled: true,
                 myLocationButtonEnabled: false,
+                padding: const EdgeInsets.only(bottom: 150), // Make space for the sheet
               ),
               Positioned(
-                bottom: 96,
+                bottom: 96, // Adjust based on your bottom nav bar height
                 left: 0,
                 right: 0,
                 child: _buildBusinessListSheet(businessesAsync),
@@ -89,21 +109,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildBusinessListSheet(AsyncValue<List<Business>> businessesAsync) {
     return businessesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+      loading: () => const SizedBox.shrink(),
+      error: (err, stack) => const SizedBox.shrink(),
       data: (businesses) {
         return SizedBox(
-          height: 150,
+          height: 160, // Slightly taller for better touch targets
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: businesses.length,
             itemBuilder: (context, index) {
               final business = businesses[index];
-              // Filter businesses without location if they shouldn't appear in the sheet either
-              if (business.location == null) return const SizedBox.shrink();
+              // FIX: Direct field access check
+              if (business.latitude == 0.0 && business.longitude == 0.0) {
+                return const SizedBox.shrink();
+              }
               return _BusinessCard(
                 business: business,
-                onTap: () => context.go('/business/${business.id}'),
+                onTap: () => context.go('/map/business/${business.id}'),
               );
             },
           ),
@@ -123,21 +146,36 @@ class _BusinessCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
-        width: 250,
+      child: Container(
+        width: 260,
+        margin: const EdgeInsets.only(right: 12, bottom: 8),
         child: Card(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(business.name, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  business.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  business.category ?? 'Uncategorized', // Null check and default value
-                  style: Theme.of(context).textTheme.bodySmall,
+                  business.category, // Now non-nullable in your new model
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  business.address ?? "No Address",
+                  style: Theme.of(context).textTheme.bodySmall,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                )
               ],
             ),
           ),

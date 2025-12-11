@@ -1,9 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:myapp/models/business.dart';
-import 'package:myapp/models/city.dart'; // Import the correct CityConfig
+import '../models/business_model.dart'; // Fixed import name
 
-// Removed the placeholder CityConfig class from here
+// Assuming you have a city_model.dart, otherwise creates a basic placeholder
+class CityConfig {
+  final String name;
+  CityConfig({required this.name});
+  factory CityConfig.fromJson(Map<String, dynamic> json) {
+    // robust parsing for nested 'city_config' or direct properties
+    final data = json['city_config'] ?? json;
+    return CityConfig(name: data['name'] ?? 'Unknown City');
+  }
+}
 
 class ConfigService {
   static final ConfigService _instance = ConfigService._internal();
@@ -22,34 +30,32 @@ class ConfigService {
       final jsonString = await rootBundle.loadString(configPath);
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
 
-      _cityConfig = CityConfig.fromJson(jsonData); // This will now use CityConfig from models/city.dart
+      _cityConfig = CityConfig.fromJson(jsonData);
 
       final businessesJson = jsonData['businesses'] as List<dynamic>?;
-      _businesses = businessesJson
-          ?.map((b) => Business.fromJson(b as Map<String, dynamic>))
-          .toList() ?? [];
+
+      _businesses = [];
+      if (businessesJson != null) {
+        for (var b in businessesJson) {
+          try {
+            _businesses!.add(Business.fromJson(b as Map<String, dynamic>));
+          } catch (e) {
+            // Log error for specific business but continue loading others
+            print('Skipping invalid business entry: $e');
+          }
+        }
+      }
     } catch (e) {
-      throw Exception('Failed to load config from $configPath: $e');
+      print('CRITICAL: Failed to load config from $configPath: $e');
+      // Initialize with empty defaults to prevent app crash
+      _businesses = [];
+      _cityConfig = CityConfig(name: "Error Loading Config");
     }
   }
 
-  CityConfig get cityConfig {
-    if (_cityConfig == null) {
-      throw Exception(
-        'ConfigService not initialized. Call initialize() first.',
-      );
-    }
-    return _cityConfig!;
-  }
+  CityConfig get cityConfig => _cityConfig!;
 
-  List<Business> get businesses {
-    if (_businesses == null) {
-      throw Exception(
-        'ConfigService not initialized. Call initialize() first.',
-      );
-    }
-    return _businesses!;
-  }
+  List<Business> get businesses => _businesses ?? [];
 
   Business? getBusinessById(String id) {
     if (_businesses == null) return null;

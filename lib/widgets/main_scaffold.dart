@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'bottom_nav_bar.dart';
+import '../router/app_router.dart';
+
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
@@ -32,20 +34,40 @@ class MainScaffold extends StatelessWidget {
     return 0;
   }
 
+  // void _onItemTapped(int index, BuildContext context) {
+  //   switch (index) {
+  //     case 0:
+  //       context.go('/');
+  //       break;
+  //     case 1:
+  //       context.go('/map');
+  //       break;
+  //     case 2:
+  //       context.go('/businesses');
+  //       break;
+  //     case 3:
+  //       context.go('/profile');
+  //       break;
+  //   }
+  // }
+
+// inside MainScaffold's NavigationBar onDestinationSelected:
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.go('/');
+        context.go(AppRoutes.home); // Welcome Back
         break;
       case 1:
-        context.go('/map');
+        context.go(AppRoutes.map); // Map
         break;
       case 2:
-        context.go('/businesses');
+        context.go(AppRoutes.businesses); // List
         break;
       case 3:
-        context.go('/profile');
+        context.go(AppRoutes.profile); // Profile
         break;
     }
   }
+
+
 }

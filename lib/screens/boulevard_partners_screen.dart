@@ -1,57 +1,80 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle; // For loading local JSON
-import 'package:url_launcher/url_launcher.dart'; // For opening links
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../models/business_model.dart'; // Corrected import
+import '../providers/config_provider.dart'; // Import the provider
 
-import 'package:myapp/models/business.dart';
-
-class BoulevardPartnersScreen extends StatefulWidget {
+class BoulevardPartnersScreen extends ConsumerStatefulWidget {
   const BoulevardPartnersScreen({super.key});
 
   @override
-  State<BoulevardPartnersScreen> createState() => _BoulevardPartnersScreenState();
+  ConsumerState<BoulevardPartnersScreen> createState() => _BoulevardPartnersScreenState();
 }
 
-class _BoulevardPartnersScreenState extends State<BoulevardPartnersScreen> {
-  List<Business> _businesses = [];
-  bool _isLoading = true;
+class _BoulevardPartnersScreenState extends ConsumerState<BoulevardPartnersScreen> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
 
-  @override
-  void initState() {
-    super.initState();
-    _loadBusinesses();
-  }
+  // We'll use this to track if we've already animated the list so it doesn't replay on every rebuild
+  bool _listAnimated = false;
 
-  Future<void> _loadBusinesses() async {
-    try {
-      final String response = await rootBundle.loadString('assets/data/boulevard_partners.json');
-      final List<dynamic> data = json.decode(response);
-      setState(() {
-        _businesses = data.map((json) => Business.fromJson(json)).toList();
-        _isLoading = false;
-        // Animate in items one by one
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          for (int i = 0; i < _businesses.length; i++) {
-            Future.delayed(Duration(milliseconds: i * 100), () {
-              if (_listKey.currentState != null) {
-                _listKey.currentState!.insertItem(i, duration: const Duration(milliseconds: 500));
+  @override
+  Widget build(BuildContext context) {
+    // Watch the provider for business data
+    final businessesAsync = ref.watch(businessesProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Boulevard Partners'),
+        centerTitle: true,
+      ),
+      body: businessesAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+        data: (businesses) {
+          if (businesses.isEmpty) {
+            return const Center(child: Text('No partners found.'));
+          }
+
+          // Trigger animation only once when data is first loaded
+          if (!_listAnimated) {
+            _listAnimated = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              for (int i = 0; i < businesses.length; i++) {
+                Future.delayed(Duration(milliseconds: i * 100), () {
+                  if (_listKey.currentState != null) {
+                    _listKey.currentState!.insertItem(i, duration: const Duration(milliseconds: 500));
+                  }
+                });
               }
             });
           }
-        });
-      });
-    } catch (e) {
-      // Handle error: show a snackbar, log, or display an error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading businesses: $e')),
-        );
-      }
-      setState(() {
-        _isLoading = false;
-      });
-    }
+
+          return AnimatedList(
+            key: _listKey,
+            initialItemCount: 0, // Start with 0 and insert them via the loop above
+            itemBuilder: (context, index, animation) {
+              // Safety check for index
+              if (index >= businesses.length) return const SizedBox.shrink();
+
+              final business = businesses[index];
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(-1, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: FadeTransition(
+                  opacity: animation,
+                  child: _BusinessCard(
+                    business: business,
+                    onTap: () => _showBusinessDetails(business),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 
   void _showBusinessDetails(Business business) {
@@ -61,9 +84,9 @@ class _BoulevardPartnersScreenState extends State<BoulevardPartnersScreen> {
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
-          initialChildSize: 0.6, // Start at 60% of screen height
-          minChildSize: 0.3, // Minimum height
-          maxChildSize: 0.9, // Maximum height
+          initialChildSize: 0.6,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
           expand: false,
           builder: (_, scrollController) {
             return Container(
@@ -78,9 +101,12 @@ class _BoulevardPartnersScreenState extends State<BoulevardPartnersScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          business.name,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                        Expanded(
+                          child: Text(
+                            business.name,
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
@@ -94,26 +120,28 @@ class _BoulevardPartnersScreenState extends State<BoulevardPartnersScreen> {
                       controller: scrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                       children: [
+                        // Safe access to optional fields
                         Text(
-                          '${business.streetAddress}, ${business.city}, ${business.state} ${business.zipCode}',
+                          business.address ?? "Address not available",
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                         const SizedBox(height: 16),
-                        if (business.description != null && business.description!.isNotEmpty)
+
+                        if (business.pitch != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 16.0),
                             child: Text(
-                              business.description!,
-                              style: Theme.of(context).textTheme.bodyMedium,
+                              business.pitch!,
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic),
                             ),
                           ),
+
                         if (business.website != null && business.website!.isNotEmpty)
                           _buildLinkTile(context, Icons.language, 'Website', business.website!),
-                        if (business.menuLink != null && business.menuLink!.isNotEmpty)
-                          _buildLinkTile(context, Icons.restaurant_menu, 'Menu', business.menuLink!),
-                        if (business.hoursOfOperation != null && business.hoursOfOperation!.isNotEmpty)
-                          _buildInfoTile(context, Icons.access_time, 'Hours', business.hoursOfOperation!),
-                        // Add more details here as needed
+
+                        if (business.phoneNumber != null && business.phoneNumber!.isNotEmpty)
+                          _buildInfoTile(context, Icons.phone, 'Phone', business.phoneNumber!),
+
                         const SizedBox(height: 20),
                         Text(
                           '(This business will be part of the game feature on the map.)',
@@ -159,49 +187,13 @@ class _BoulevardPartnersScreenState extends State<BoulevardPartnersScreen> {
       subtitle: Text(info),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Boulevard Partners'),
-        centerTitle: true,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : (_businesses.isEmpty
-          ? const Center(child: Text('No partners found.'))
-          : AnimatedList(
-        key: _listKey,
-        initialItemCount: _businesses.length,
-        itemBuilder: (context, index, animation) {
-          final business = _businesses[index];
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(-1, 0),
-              end: Offset.zero,
-            ).animate(animation),
-            child: FadeTransition(
-              opacity: animation,
-              child: _BusinessCard(
-                business: business,
-                onTap: () => _showBusinessDetails(business),
-              ),
-            ),
-          );
-        },
-      )),
-    );
-  }
 }
 
-// Custom Widget for each business card entry (now Stateful for animation)
 class _BusinessCard extends StatefulWidget {
   final Business business;
   final VoidCallback onTap;
 
   const _BusinessCard({
-    super.key,
     required this.business,
     required this.onTap,
   });
@@ -219,12 +211,12 @@ class _BusinessCardState extends State<_BusinessCard> with SingleTickerProviderS
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2), // Duration for one full float cycle
-    )..repeat(reverse: true); // Loop the animation back and forth
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
 
     _animation = Tween<Offset>(
-      begin: const Offset(0, 0), // Start at no vertical offset
-      end: const Offset(0, -0.01), // Float up slightly (e.g., 1% of card height)
+      begin: const Offset(0, 0),
+      end: const Offset(0, -0.01),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
@@ -237,12 +229,12 @@ class _BusinessCardState extends State<_BusinessCard> with SingleTickerProviderS
   @override
   Widget build(BuildContext context) {
     return SlideTransition(
-      position: _animation, // Apply the floating animation here
+      position: _animation,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
-          side: BorderSide(color: Theme.of(context).dividerColor, width: 1.0), // Border for separation
+          side: BorderSide(color: Theme.of(context).dividerColor, width: 1.0),
         ),
         elevation: 2,
         child: InkWell(
@@ -259,7 +251,7 @@ class _BusinessCardState extends State<_BusinessCard> with SingleTickerProviderS
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${widget.business.streetAddress}, ${widget.business.city}, ${widget.business.state} ${widget.business.zipCode}',
+                  widget.business.address ?? 'No address',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
