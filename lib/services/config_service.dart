@@ -1,15 +1,26 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import '../models/business_model.dart'; // Fixed import name
+import '../models/business_model.dart';
 
-// Assuming you have a city_model.dart, otherwise creates a basic placeholder
 class CityConfig {
   final String name;
-  CityConfig({required this.name});
+  final String state;
+  final String zipCode;
+
+  CityConfig({
+    required this.name,
+    required this.state,
+    required this.zipCode,
+  });
+
   factory CityConfig.fromJson(Map<String, dynamic> json) {
-    // robust parsing for nested 'city_config' or direct properties
+    // Robust parsing: checks for nested 'city_config' or uses defaults
     final data = json['city_config'] ?? json;
-    return CityConfig(name: data['name'] ?? 'Unknown City');
+    return CityConfig(
+      name: data['name'] ?? 'Bellevue', // Default fallback
+      state: data['state'] ?? 'NE',
+      zipCode: data['zip_code'] ?? '68005',
+    );
   }
 }
 
@@ -28,32 +39,46 @@ class ConfigService {
   Future<void> initialize(String configPath) async {
     try {
       final jsonString = await rootBundle.loadString(configPath);
-      final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
-
-      _cityConfig = CityConfig.fromJson(jsonData);
-
-      final businessesJson = jsonData['businesses'] as List<dynamic>?;
+      // Change: Decode as dynamic to handle List or Map
+      final dynamic jsonData = jsonDecode(jsonString);
 
       _businesses = [];
-      if (businessesJson != null) {
-        for (var b in businessesJson) {
-          try {
-            _businesses!.add(Business.fromJson(b as Map<String, dynamic>));
-          } catch (e) {
-            // Log error for specific business but continue loading others
-            print('Skipping invalid business entry: $e');
-          }
+
+      if (jsonData is Map<String, dynamic>) {
+        // Format A: Object with "city_config" and "businesses" keys
+        _cityConfig = CityConfig.fromJson(jsonData);
+        final list = jsonData['businesses'] as List<dynamic>?;
+        if (list != null) {
+          _parseBusinesses(list);
         }
+      } else if (jsonData is List<dynamic>) {
+        // Format B: Just a raw list of businesses (matches your current file)
+        // Use default City Config since it's missing from the file
+        _cityConfig = CityConfig(name: 'Bellevue', state: 'NE', zipCode: '68005');
+        _parseBusinesses(jsonData);
+      } else {
+        print('CRITICAL: Unknown JSON format in $configPath');
       }
+
     } catch (e) {
       print('CRITICAL: Failed to load config from $configPath: $e');
-      // Initialize with empty defaults to prevent app crash
       _businesses = [];
-      _cityConfig = CityConfig(name: "Error Loading Config");
+      _cityConfig = CityConfig(name: "Error", state: "", zipCode: "");
     }
   }
 
-  CityConfig get cityConfig => _cityConfig!;
+  // Helper to parse the list safely
+  void _parseBusinesses(List<dynamic> list) {
+    for (var b in list) {
+      try {
+        _businesses!.add(Business.fromJson(b as Map<String, dynamic>));
+      } catch (e) {
+        print('Skipping invalid business entry: $e');
+      }
+    }
+  }
+
+  CityConfig get cityConfig => _cityConfig ?? CityConfig(name: "Loading...", state: "", zipCode: "");
 
   List<Business> get businesses => _businesses ?? [];
 

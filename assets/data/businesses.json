@@ -1,11 +1,39 @@
-[
+{
+  "city_config": {
+    "name": "Bellevue",
+    "state": "NE",
+    "zip_code": "68005"
+  },
+  "businesses": [
+    {
+      "id": "chick-fil-a-cornhusker",
+      "name": "Chick-fil-A",
+      "street": "2016 Cornhusker Rd",
+      "city": "Bellevue",
+      "state": "NE",
+      "zip": "68123",
+      "category": "Restaurant",
+      "heroImageUrl": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://www.chick-fil-a.com/menu",
+      "hours": {
+        "Mon-Sat": "6:30 AM - 10:00 PM",
+        "Sun": "Closed"
+      }
+    },
     {
       "id": "edward-jones",
       "name": "Edward Jones",
       "street": "1103 Galvin Rd S Suite C",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Finance",
+      "heroImageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://www.edwardjones.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 5:00 PM",
+        "Sat-Sun": "Closed"
+      }
     },
     {
       "id": "lamar-outdoor-advertising",
@@ -13,7 +41,14 @@
       "street": "1036 Bruin Blvd",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Advertising",
+      "heroImageUrl": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://www.lamar.com",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 5:00 PM",
+        "Sat-Sun": "Closed"
+      }
     },
     {
       "id": "iheartmedia",
@@ -21,7 +56,14 @@
       "street": "5010 Underwood Ave",
       "city": "Omaha",
       "state": "NE",
-      "zip": "68132"
+      "zip": "68132",
+      "category": "Media",
+      "heroImageUrl": "https://images.unsplash.com/photo-1598550476439-cce879f94183?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://www.iheartmedia.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 5:00 PM",
+        "Sat-Sun": "Closed"
+      }
     },
     {
       "id": "cs-services-heating-and-cooling-llc",
@@ -29,7 +71,15 @@
       "street": "706 Fort Crook Rd N",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Services",
+      "heroImageUrl": "https://images.unsplash.com/photo-1581094794329-cd232ef3473b?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com",
+      "hours": {
+        "Mon-Fri": "7:00 AM - 6:00 PM",
+        "Sat": "8:00 AM - 12:00 PM",
+        "Sun": "Closed"
+      }
     },
     {
       "id": "west-gate-bank",
@@ -37,7 +87,15 @@
       "street": "1004 Cornhusker Rd",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Finance",
+      "heroImageUrl": "https://images.unsplash.com/photo-1601597111158-2fceff292cd4?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://westgate.bank",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 5:00 PM",
+        "Sat": "9:00 AM - 12:00 PM",
+        "Sun": "Closed"
+      }
     },
     {
       "id": "athena-arms",
@@ -45,7 +103,14 @@
       "street": "3403 Samson Way",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Retail",
+      "heroImageUrl": "https://images.unsplash.com/photo-1584039130095-d28f0927e1f4?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://athenaarms.com",
+      "hours": {
+        "Mon-Sat": "10:00 AM - 8:00 PM",
+        "Sun": "12:00 PM - 6:00 PM"
+      }
     },
     {
       "id": "erwins-jewelers-co",
@@ -53,15 +118,15 @@
       "street": "223 W Mission Ave",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
-    },
-    {
-      "id": "chick-fil-a-cornhusker",
-      "name": "Chick-fil-A",
-      "street": "2016 Cornhusker Rd",
-      "city": "Bellevue",
-      "state": "NE",
-      "zip": "68123"
+      "zip": "68005",
+      "category": "Retail",
+      "heroImageUrl": "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://erwinsjewelers.com",
+      "hours": {
+        "Tue-Fri": "10:00 AM - 5:30 PM",
+        "Sat": "10:00 AM - 3:00 PM",
+        "Sun-Mon": "Closed"
+      }
     },
     {
       "id": "dip-cravers-dip-n-sip",
@@ -69,7 +134,13 @@
       "street": "2217 Franklin St",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Restaurant",
+      "heroImageUrl": "https://images.unsplash.com/photo-1541592106381-b31e9674c96b?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com/menu",
+      "hours": {
+        "Mon-Sun": "11:00 AM - 9:00 PM"
+      }
     },
     {
       "id": "holland-basham-architects",
@@ -77,15 +148,29 @@
       "street": "119 S 49th Ave",
       "city": "Omaha",
       "state": "NE",
-      "zip": "68132"
+      "zip": "68132",
+      "category": "Professional Services",
+      "heroImageUrl": "https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://hollandbasham.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 5:00 PM",
+        "Sat-Sun": "Closed"
+      }
     },
     {
       "id": "the-light-house-cafe",
-      "name": "The Light House Cafe (Lighthouse Coffee)",
+      "name": "The Light House Cafe",
       "street": "119 W Mission Ave",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Restaurant",
+      "heroImageUrl": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://lighthouse.coffee",
+      "hours": {
+        "Mon-Fri": "7:00 AM - 2:00 PM",
+        "Sat-Sun": "8:00 AM - 1:00 PM"
+      }
     },
     {
       "id": "bellevue-chamber-of-commerce",
@@ -93,15 +178,28 @@
       "street": "1036 Bruin Blvd",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Organization",
+      "heroImageUrl": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://bellevuenebraska.com",
+      "hours": {
+        "Mon-Fri": "8:30 AM - 4:30 PM",
+        "Sat-Sun": "Closed"
+      }
     },
     {
       "id": "twisted-thunder-fireworks",
-      "name": "Twisted Thunder Fireworks (Twister Fireworks)",
+      "name": "Twisted Thunder Fireworks",
       "street": "601 Chateau Dr",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Retail",
+      "heroImageUrl": "https://images.unsplash.com/photo-1498931299472-f7a63a5a1cfa?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://twistedthunder.com",
+      "hours": {
+        "Seasonal": "Check Website for Hours"
+      }
     },
     {
       "id": "royalty-roofing-and-siding",
@@ -109,7 +207,14 @@
       "street": "2803 Jack Pine St",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Services",
+      "heroImageUrl": "https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://royaltyroofing.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 6:00 PM",
+        "Sat": "9:00 AM - 2:00 PM"
+      }
     },
     {
       "id": "dleons-taco-rico",
@@ -117,15 +222,28 @@
       "street": "3512 Samson Way",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Restaurant",
+      "heroImageUrl": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com/menu",
+      "hours": {
+        "Mon-Sun": "Open 24 Hours"
+      }
     },
     {
       "id": "live-your-best-life-salon",
-      "name": "Live Your Best Life Salon (Salon Life)",
+      "name": "Live Your Best Life Salon",
       "street": "101 W Mission Ave Suite A",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Beauty",
+      "heroImageUrl": "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com/services",
+      "hours": {
+        "Tue-Sat": "10:00 AM - 7:00 PM",
+        "Sun-Mon": "Closed"
+      }
     },
     {
       "id": "bellevue-little-theatre",
@@ -133,15 +251,28 @@
       "street": "203 W Mission Ave",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Entertainment",
+      "heroImageUrl": "https://images.unsplash.com/photo-1503095392269-27528ca388ec?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://bellevuelittletheatre.com",
+      "hours": {
+        "Box Office": "Call for details"
+      }
     },
     {
       "id": "the-landings-apartments",
-      "name": "The Landings Apartments (Landing Zone)",
+      "name": "The Landings Apartments",
       "street": "10215 Cape Cod Lndg",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Real Estate",
+      "heroImageUrl": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://landingsapartments.com",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 6:00 PM",
+        "Sat": "10:00 AM - 4:00 PM"
+      }
     },
     {
       "id": "remedy-health-med-spa",
@@ -149,7 +280,14 @@
       "street": "1320 Galvin Rd S",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Health & Beauty",
+      "heroImageUrl": "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://remedyhealth.com",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 5:00 PM",
+        "Sat": "By Appointment"
+      }
     },
     {
       "id": "teammates-mentoring-program",
@@ -157,39 +295,72 @@
       "street": "2600 Arboretum Dr",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Organization",
+      "heroImageUrl": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://teammates.org",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 4:30 PM"
+      }
     },
     {
       "id": "first-interstate-bank",
-      "name": "First Interstate Bank (First Commerce)",
+      "name": "First Interstate Bank",
       "street": "919 Galvin Rd S",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Finance",
+      "heroImageUrl": "https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://firstinterstatebank.com",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 5:00 PM",
+        "Sat": "9:00 AM - 12:00 PM"
+      }
     },
     {
       "id": "cornhusker-auto-wash",
-      "name": "Cornhusker Auto Wash (Autumn Car Wash)",
+      "name": "Cornhusker Auto Wash",
       "street": "10205 S 25th St",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Services",
+      "heroImageUrl": "https://images.unsplash.com/photo-1520340356584-7c99a32b2604?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com",
+      "hours": {
+        "Mon-Sun": "24 Hours"
+      }
     },
     {
       "id": "ame-computers",
-      "name": "AME Computers (Performance Computers)",
+      "name": "AME Computers",
       "street": "101 W Mission Ave STE D",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Services",
+      "heroImageUrl": "https://images.unsplash.com/photo-1597872252165-20092c686162?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://amecomputers.com",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 6:00 PM",
+        "Sat": "10:00 AM - 2:00 PM"
+      }
     },
     {
       "id": "centris-federal-credit-union",
-      "name": "Centris Federal Credit Union (Commercial Federal)",
+      "name": "Centris Federal Credit Union",
       "street": "2207 Pratt Ave",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Finance",
+      "heroImageUrl": "https://images.unsplash.com/photo-1616514197671-15d99ce7a6f8?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://centrisfcu.org",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 5:30 PM",
+        "Sat": "9:00 AM - 12:00 PM"
+      }
     },
     {
       "id": "west-gate-bar-and-grill",
@@ -197,7 +368,13 @@
       "street": "4001 Twin Creek Dr",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Restaurant",
+      "heroImageUrl": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com/menu",
+      "hours": {
+        "Mon-Sun": "11:00 AM - 2:00 AM"
+      }
     },
     {
       "id": "red-barn-farm",
@@ -205,7 +382,13 @@
       "street": "1720 Ave A",
       "city": "Omaha",
       "state": "NE",
-      "zip": "68108"
+      "zip": "68108",
+      "category": "Agriculture",
+      "heroImageUrl": "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com",
+      "hours": {
+        "Seasonal": "Check Website"
+      }
     },
     {
       "id": "wildcat-den",
@@ -213,7 +396,13 @@
       "street": "1000 N 14th St",
       "city": "Blair",
       "state": "NE",
-      "zip": "68008"
+      "zip": "68008",
+      "category": "Restaurant",
+      "heroImageUrl": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com/menu",
+      "hours": {
+        "Mon-Sun": "11:00 AM - 9:00 PM"
+      }
     },
     {
       "id": "blue-chip-realty",
@@ -221,7 +410,13 @@
       "street": "100 N 8th St",
       "city": "Lincoln",
       "state": "NE",
-      "zip": "68508"
+      "zip": "68508",
+      "category": "Real Estate",
+      "heroImageUrl": "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://bluechiprealty.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 5:00 PM"
+      }
     },
     {
       "id": "ima-crown-partners",
@@ -229,7 +424,13 @@
       "street": "1100 Main St",
       "city": "Kansas City",
       "state": "MO",
-      "zip": "64105"
+      "zip": "64105",
+      "category": "Services",
+      "heroImageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://imacorp.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 5:00 PM"
+      }
     },
     {
       "id": "belleview-arms",
@@ -237,7 +438,13 @@
       "street": "505 W Mission Ave",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Real Estate",
+      "heroImageUrl": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 6:00 PM"
+      }
     },
     {
       "id": "belleview-poly",
@@ -245,7 +452,13 @@
       "street": "1000 Industrial Rd",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Industrial",
+      "heroImageUrl": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 5:00 PM"
+      }
     },
     {
       "id": "westlawn-architects",
@@ -253,7 +466,13 @@
       "street": "1200 Howard St",
       "city": "Omaha",
       "state": "NE",
-      "zip": "68102"
+      "zip": "68102",
+      "category": "Professional Services",
+      "heroImageUrl": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://westlawn.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 5:00 PM"
+      }
     },
     {
       "id": "stellas-bar-and-grill",
@@ -261,7 +480,13 @@
       "street": "106 W Main St",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Restaurant",
+      "heroImageUrl": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://stellasbarandgrill.com",
+      "hours": {
+        "Mon-Sat": "11:00 AM - 9:00 PM"
+      }
     },
     {
       "id": "chase-west-gate-bank",
@@ -269,7 +494,14 @@
       "street": "2000 Cornhusker Rd",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68123"
+      "zip": "68123",
+      "category": "Finance",
+      "heroImageUrl": "https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://chase.com",
+      "hours": {
+        "Mon-Fri": "9:00 AM - 6:00 PM",
+        "Sat": "9:00 AM - 2:00 PM"
+      }
     },
     {
       "id": "gwens-jewelers",
@@ -277,7 +509,14 @@
       "street": "120 N 10th St",
       "city": "Omaha",
       "state": "NE",
-      "zip": "68102"
+      "zip": "68102",
+      "category": "Retail",
+      "heroImageUrl": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://gwensjewelers.com",
+      "hours": {
+        "Tue-Fri": "10:00 AM - 5:30 PM",
+        "Sat": "10:00 AM - 4:00 PM"
+      }
     },
     {
       "id": "chicken-coop-solutions",
@@ -285,7 +524,13 @@
       "street": "300 E Broadway",
       "city": "Council Bluffs",
       "state": "IA",
-      "zip": "51503"
+      "zip": "51503",
+      "category": "Agriculture",
+      "heroImageUrl": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com",
+      "hours": {
+        "Mon-Fri": "8:00 AM - 5:00 PM"
+      }
     },
     {
       "id": "bps-lids",
@@ -293,15 +538,13 @@
       "street": "200 S 24th St",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
-    },
-    {
-      "id": "the-light-house-cafe-coffee",
-      "name": "The Light House Cafe & Coffee",
-      "street": "119 W Mission Ave",
-      "city": "Bellevue",
-      "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Retail",
+      "heroImageUrl": "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com",
+      "hours": {
+        "Mon-Fri": "10:00 AM - 8:00 PM"
+      }
     },
     {
       "id": "fun-house-bellevue",
@@ -309,7 +552,13 @@
       "street": "200 Fun House Ln",
       "city": "Bellevue",
       "state": "NE",
-      "zip": "68005"
+      "zip": "68005",
+      "category": "Entertainment",
+      "heroImageUrl": "https://images.unsplash.com/photo-1576403780360-1e8460699252?auto=format&fit=crop&w=800&q=80",
+      "menuUrl": "https://example.com",
+      "hours": {
+        "Mon-Sun": "12:00 PM - 10:00 PM"
+      }
     }
   ]
-  
+}

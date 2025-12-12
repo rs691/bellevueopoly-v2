@@ -70,7 +70,7 @@ import '../models/business_model.dart';final List<Business> dummyBusinesses = [
     latitude: 41.120, longitude: -95.930,
     pitch: "Home of the Original Chicken Sandwich.",
     heroImageUrl: "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=80",
-    promotion: Promotion(title: "Free Sandwich", description: "Free sandwich with app download", code: "CFAFREE"),
+
   ),
   Business(
     id: 'dip-cravers',

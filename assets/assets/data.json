@@ -1,0 +1,47 @@
+[
+  {
+    "id": "chick-fil-a-cornhusker",
+    "name": "Chick-fil-A",
+    "street": "2016 Cornhusker Rd",
+    "city": "Bellevue",
+    "state": "NE",
+    "zip": "68123",
+    "category": "Restaurant",
+    "heroImageUrl": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=80",
+    "menuUrl": "https://www.chick-fil-a.com/menu",
+    "hours": {
+      "Mon-Sat": "6:30 AM - 10:00 PM",
+      "Sun": "Closed"
+    }
+  },
+  {
+    "id": "the-light-house-cafe",
+    "name": "The Light House Cafe",
+    "street": "119 W Mission Ave",
+    "city": "Bellevue",
+    "state": "NE",
+    "zip": "68005",
+    "category": "Coffee",
+    "heroImageUrl": "../assets/images/placeholder.png",
+    "hours": {
+      "Mon-Fri": "7:00 AM - 2:00 PM",
+      "Sat-Sun": "8:00 AM - 1:00 PM"
+    }
+  },
+  {
+    "id": "the-light-house-cafe",
+    "name": "The Light House Cafe",
+    "street": "119 W Mission Ave",
+    "city": "Bellevue",
+    "state": "NE",
+    "zip": "68005",
+    "category": "Coffee",
+    "heroImageUrl": "../assets/images/placeholder.png",
+    "hours": {
+      "Mon-Fri": "7:00 AM - 2:00 PM",
+      "Sat-Sun": "8:00 AM - 1:00 PM",
+      "website": "https://www.lighthousecafe.com/"
+    }
+
+  }
+]

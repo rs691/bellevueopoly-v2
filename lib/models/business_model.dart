@@ -1,15 +1,22 @@
+import 'business.dart';
+
 class Business {
   final String id;
   final String name;
   final String category;
   final String? heroImageUrl;
-  final String? address;  final String? phoneNumber;
+  final String? address;
+  final String? phoneNumber;
   final String? website;
   final double latitude;
   final double longitude;
   final String? pitch;
   final Promotion? promotion;
   final LoyaltyProgram? loyaltyProgram;
+
+  // NEW FIELDS
+  final Map<String, String>? hours; // e.g., {"Mon-Fri": "9am-5pm"}
+  final String? menuUrl;
 
   Business({
     required this.id,
@@ -24,6 +31,8 @@ class Business {
     this.pitch,
     this.promotion,
     this.loyaltyProgram,
+    this.hours,
+    this.menuUrl,
   });
 
   factory Business.fromJson(Map<String, dynamic> json) {
@@ -35,7 +44,6 @@ class Business {
       address: json['address'] as String?,
       phoneNumber: json['phoneNumber'] as String?,
       website: json['website'] as String?,
-      // Safe double parsing
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
       pitch: json['pitch'] as String?,
@@ -45,43 +53,10 @@ class Business {
       loyaltyProgram: json['loyaltyProgram'] != null
           ? LoyaltyProgram.fromJson(json['loyaltyProgram'] as Map<String, dynamic>)
           : null,
+      // PARSE NEW FIELDS
+      hours: json['hours'] != null ? Map<String, String>.from(json['hours']) : null,
+      menuUrl: json['menuUrl'] as String?,
     );
   }
 }
-
-class Promotion {
-  final String title;
-  final String description;
-  final String code;
-
-  Promotion({
-    required this.title,
-    required this.description,
-    required this.code,
-  });
-
-  factory Promotion.fromJson(Map<String, dynamic> json) {
-    return Promotion(
-      title: json['title'] as String,
-      description: json['description'] as String,
-      code: json['code'] as String,
-    );
-  }
-}
-
-class LoyaltyProgram {
-  final int totalCheckInsRequired;
-  final int currentCheckIns;
-
-  LoyaltyProgram({
-    required this.totalCheckInsRequired,
-    required this.currentCheckIns,
-  });
-
-  factory LoyaltyProgram.fromJson(Map<String, dynamic> json) {
-    return LoyaltyProgram(
-      totalCheckInsRequired: json['totalCheckInsRequired'] as int? ?? 10,
-      currentCheckIns: json['currentCheckIns'] as int? ?? 0,
-    );
-  }
-}
+// ... Promotion and LoyaltyProgram classes remain the same

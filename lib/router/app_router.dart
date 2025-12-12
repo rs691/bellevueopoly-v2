@@ -74,20 +74,43 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const MobileLandingScreen(),
           ),
 
+
+
+
           // 2. MAP TAB
           GoRoute(
             path: AppRoutes.map,
-            builder: (context, state) => const HomeScreen(), // Map logic
+            builder: (context, state) => const HomeScreen(),
             routes: [
               GoRoute(
                 path: AppRoutes.businessDetail,
-                parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) => BusinessDetailScreen(
-                  businessId: state.pathParameters['id']!,
-                ),
+                parentNavigatorKey: _rootNavigatorKey, // Covers the bottom nav
+                pageBuilder: (context, state) {
+                  final String id = state.pathParameters['id']!;
+
+                  return CustomTransitionPage(
+                    key: state.pageKey,
+                    child: BusinessDetailScreen(businessId: id),
+                    barrierDismissible: true,
+                    barrierColor: Colors.black54, // Darkens the screen behind it
+                    opaque: false, // Allows transparency
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      // Scale and Fade animation like a popup
+                      return FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+                          child: child,
+                        ),
+                      );
+                    },
+                    transitionDuration: const Duration(milliseconds: 300),
+                  );
+                },
               ),
             ],
           ),
+
 
           // 3. BUSINESS LIST
           GoRoute(
