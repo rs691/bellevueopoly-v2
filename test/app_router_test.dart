@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:myapp/router/app_router.dart';
-import 'package:myapp/providers/auth_provider.dart';
+import 'package:go_router/go_router.dart';import 'package:firebase_auth/firebase_auth.dart'; // REQUIRED: Import for User type
+import 'package:belle_opoly/router/app_router.dart'; // Ensure this matches your pubspec name
+import 'package:belle_opoly/providers/auth_provider.dart';
+
+// 1. DEFINE A FAKE USER
+// Since we cannot instantiate 'User' directly, we make a fake one that looks like it.
+class FakeUser extends Fake implements User {
+  @override
+  final String uid;
+  @override
+  final String email;
+
+  FakeUser({required this.uid, required this.email});
+}
 
 // Simple mock for Auth State
 class MockAuthNotifier extends AsyncNotifier<User?> {
@@ -34,16 +45,14 @@ void main() {
         ),
       );
 
-      // Verify redirection logic sends us to Landing
-      // Note: You might need to update findsOneWidget depending on your Splash screen duration
-      // or if your router redirects immediately.
       await tester.pumpAndSettle();
-      expect(find.text('Landing Screen'), findsOneWidget); // Update text to match your actual Landing UI
+      expect(find.text('Landing Screen'), findsOneWidget);
     });
 
     testWidgets('Authenticated user sees Home/MobileLanding', (tester) async {
-      // Create a dummy user object (adjust based on your actual User model)
-      final dummyUser = User(uid: '123', email: 'test@test.com');
+      // 2. USE FAKE USER HERE
+      // Instead of User(), we use our FakeUser wrapper.
+      final dummyUser = FakeUser(uid: '123', email: 'test@test.com');
 
       await tester.pumpWidget(
         ProviderScope(
@@ -63,7 +72,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Should find the MobileLandingScreen content (e.g. "Boulevard Partners" or "Welcome")
+      // Should find the MobileLandingScreen content
       expect(find.text('Welcome'), findsOneWidget);
     });
   });

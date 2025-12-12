@@ -47,10 +47,13 @@ dependencies:
   shared_preferences: ^2.5.4
   url_launcher: ^6.1.12
   google_maps_flutter_web: ^0.5.14
+  image_picker: ^1.2.1
+
 
   # For data models (immutable classes, JSON serialization)
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
+  google_sign_in: ^7.2.0
 
 dev_dependencies:
   flutter_test:
@@ -95,6 +98,7 @@ flutter:
     - assets/images/empty_state.png
     - assets/images/error_state.png
     - assets/images/splash_image.png
+    - assets/images/google_logo.png
     - assets/icons/heart_filled.png
     - assets/icons/heart_outline.png
     - assets/data/businesses.json

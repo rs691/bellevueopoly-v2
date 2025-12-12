@@ -7,20 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:490494751564:android:1f506139b09cc729d495e9",
+        "mobilesdk_app_id": "1:490494751564:android:78b588b08319d801d495e9",
         "android_client_info": {
-          "package_name": "com.example.myapp"
+          "package_name": "com.example.bellevueopoly"
         }
       },
       "oauth_client": [
         {
-          "client_id": "490494751564-e649glgqerf11sen3tuqed1boc2cn541.apps.googleusercontent.com",
+          "client_id": "490494751564-fieic0v8prbhq4atdq5u3k4tfel0qi76.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAM3-iyFcM06rNMVNwzLi228PYy3FvYiS4"
+          "current_key": "AIzaSyDvfkFCLhzMkP_C6kQPWx56GeQep-robmQ"
         }
       ],
       "services": {
@@ -29,6 +29,49 @@
             {
               "client_id": "490494751564-e649glgqerf11sen3tuqed1boc2cn541.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "490494751564-bo62ktpn73ua03a6haobcvsattq2jkoe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bellevueopoly.app"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:490494751564:android:1f506139b09cc729d495e9",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "490494751564-fieic0v8prbhq4atdq5u3k4tfel0qi76.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvfkFCLhzMkP_C6kQPWx56GeQep-robmQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "490494751564-e649glgqerf11sen3tuqed1boc2cn541.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "490494751564-bo62ktpn73ua03a6haobcvsattq2jkoe.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bellevueopoly.app"
+              }
             }
           ]
         }

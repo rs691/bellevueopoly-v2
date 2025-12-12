@@ -28,30 +28,26 @@ class MobileLandingScreen extends StatelessWidget {
               onTap: () => context.go(AppRoutes.map),
             ),
 
-            // 2. Business List Tab (Renamed per request)
+            // 2. Business List Tab
             NavigationBox(
               icon: Icons.store,
               label: 'Boulevard Partners',
               onTap: () => context.go(AppRoutes.businesses),
             ),
 
-            // 3. Prizes (Placeholder)
+            // 3. Upload Images (The new requested box)
             NavigationBox(
-              icon: Icons.emoji_events,
-              label: 'Prizes',
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Prizes coming soon!')),
-              ),
+              icon: Icons.camera_alt,
+              label: 'Upload Images',
+              onTap: () => context.go(AppRoutes.upload),
             ),
 
-            // 4. FAQ (Placeholder)
+            // 4. Admin Panel (Placeholder)
             NavigationBox(
-              icon: Icons.help_outline,
-              label: 'FAQ',
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('FAQ coming soon!')),
+              icon: Icons.emoji_events,
+              label: 'Admin Panel',
+              onTap: () => context.go(AppRoutes.admin),
               ),
-            ),
 
             // 5. Profile Tab
             NavigationBox(

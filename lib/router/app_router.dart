@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/main_scaffold.dart';
+import '../screens/image_upload_screen.dart';
 
 // Screens
 import '../screens/business_detail_screen.dart';
@@ -15,6 +16,7 @@ import '../screens/registration_screen.dart';
 import '../screens/splash_screen.dart';
 import '../screens/welcome_screen.dart';
 import '../screens/mobile_landing_screen.dart';
+import '../screens/admin_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -29,6 +31,8 @@ class AppRoutes {
   static const String businesses = '/businesses';
   static const String profile = '/profile';
   static const String businessDetail = 'business/:id';
+  static const String upload = '/upload';
+  static const String admin = '/admin';
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -60,6 +64,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.welcome, builder: (context, state) => const WelcomeScreen()),
       GoRoute(path: AppRoutes.login, builder: (context, state) => const LoginScreen()),
       GoRoute(path: AppRoutes.register, builder: (context, state) => const RegistrationScreen()),
+      GoRoute(path: AppRoutes.upload, builder: (context, state) => const ImageUploadScreen()),
+      GoRoute(path: AppRoutes.admin, builder: (context, state) => const AdminScreen()),
+
+
+
 
       // SHELL ROUTE (Persistent Bottom Nav)
       ShellRoute(
@@ -73,10 +82,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.home,
             builder: (context, state) => const MobileLandingScreen(),
           ),
-
-
-
-
           // 2. MAP TAB
           GoRoute(
             path: AppRoutes.map,
