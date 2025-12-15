@@ -1,16 +1,19 @@
+import 'package:flutter/foundation.dart'; // For kIsWeb check
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'dart:math' as math;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:go_router/go_router.dart'; // For navigation
+import 'dart:math' as math; // For random particle generation
+import 'package:firebase_auth/firebase_auth.dart'; // For Firebase Authentication
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // For state management (ConsumerStatefulWidget)
+import 'package:google_sign_in/google_sign_in.dart'; // For Google Sign-In
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../widgets/glassmorphic_card.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/responsive_form_container.dart';
-import '../services/firestore_service.dart'; // Import your service
+import '../services/firestore_service.dart';
 
+/// The LoginScreen handles user authentication via Email/Password and Google Sign-In.
+/// It features an animated particle background and a glassmorphic UI design.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -20,20 +23,27 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen>
     with TickerProviderStateMixin {
+  // --- ANIMATION STATE ---
   late AnimationController _particleController;
   final List<_Particle> _particles = [];
-  final _formKey = GlobalKey<FormState>();
+
+  // --- FORM STATE ---
+  final _formKey = GlobalKey<FormState>(); // Key to validate and save form fields
   String _email = '';
   String _password = '';
-  bool _isLoading = false;
-  bool _isGoogleLoading = false;
 
-  // Re-usable FirestoreService instance
+  // --- LOADING STATE ---
+  bool _isLoading = false;       // For email/password loading state
+  bool _isGoogleLoading = false; // For Google Sign-In loading state
+
+  // Re-usable FirestoreService instance (unused in this specific logic but available for future use)
   final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
     super.initState();
+    // Initialize the background particle animation
+    // Duration controls the speed of the "breathing" or movement cycle
     _particleController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10), // Slower, more ambient animation
@@ -41,6 +51,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     _initializeParticles();
   }
 
+  /// populates the `_particles` list with random properties for the background effect
   void _initializeParticles() {
     for (int i = 0; i < 15; i++) {
       _particles.add(
@@ -55,6 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
+  /// Returns a random color from a predefined palette for the particles
   Color _getRandomColor() {
     final colors = [
       Colors.pinkAccent.withOpacity(0.4),
@@ -66,22 +78,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   @override
   void dispose() {
-    _particleController.dispose();
+    _particleController.dispose(); // Clean up controller to prevent memory leaks
     super.dispose();
   }
 
+  // --- ERROR HANDLING HELPER ---
+  /// Displays a floating SnackBar with error messages
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  // --- EMAIL SIGN IN ---
+  /// Validates the form and attempts to sign in via Firebase Email/Password Auth
   void _trySubmit() async {
     final isValid = _formKey.currentState?.validate();
-    if (isValid != true) return;
-    _formKey.currentState?.save();
+    if (isValid != true) return; // Stop if form is invalid
+    _formKey.currentState?.save(); // Save form fields to variables
 
     setState(() => _isLoading = true);
 
     try {
+      // Attempt Firebase Login
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _email,
         password: _password,
       );
+      // On success, navigation is handled by the AppRouter via auth state changes,
+      // but we call context.go('/') here for explicit immediate feedback.
       if (mounted) context.go('/');
     } on FirebaseAuthException catch (e) {
       _showError(e.message ?? 'Login failed.');
@@ -92,52 +122,66 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     if (mounted) setState(() => _isLoading = false);
   }
 
+  // --- GOOGLE SIGN IN ---
+  /// Handles the Google Sign-In flow.
+  /// NOTE: Updated for `google_sign_in` v7.0.0+.
+  /// - Uses `GoogleSignIn.instance.authenticate()` instead of `signIn()`.
+  /// - Web support is currently limited in this demo flow due to GIS Widget requirements.
   Future<void> _signInWithGoogle() async {
     setState(() => _isGoogleLoading = true);
-
     try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      // WEB CHECK: The new Google Identity Services (GIS) on Web requires a specific
+      // button renderer or silent sign-in flow that differs from the mobile popup flow.
+      // For this demo, we display a message on Web to avoid crashes.
+      if (kIsWeb) {
+         await Future.delayed(const Duration(milliseconds: 500));
+         _showError('Google Sign-In is not configured for Web in this demo.');
+         return;
+      }
+
+      // 1. Trigger the native authentication flow
+      // `authenticate()` returns a non-nullable Future<GoogleSignInAccount>
+      // but throws on cancellation or error.
+      final GoogleSignInAccount? googleUser = await GoogleSignIn.instance.authenticate();
+      
+      // If code reaches here without throwing, we have a user.
       if (googleUser == null) {
-        if (mounted) setState(() => _isGoogleLoading = false);
+        // Technically unreachable with authenticate() unless implemented differently on specific platforms,
+        // but kept for safety.
         return;
       }
 
+      // 2. Obtain the auth details (idToken) from the Google request
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // 3. Create a new Firebase credential
+      // In google_sign_in 7+, `accessToken` is often null on Android as Firebase 
+      // primarily relies on `idToken` for verification.
       final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
+        accessToken: null,
         idToken: googleAuth.idToken,
       );
 
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      final user = userCredential.user;
+      // 4. Sign in to Firebase with the new credential
+      await FirebaseAuth.instance.signInWithCredential(credential);
 
-      // **FIX & ENHANCEMENT:** Check if the user is new and add to Firestore if so.
-      if (user != null && userCredential.additionalUserInfo?.isNewUser == true) {
-        await _firestoreService.addUser(
-          user: user,
-          username: user.displayName ?? user.email?.split('@')[0] ?? 'New Player',
-        );
-      }
-
+      // 5. Navigate to Home
       if (mounted) context.go('/');
-    } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Google Sign-In failed.');
+
+    } on GoogleSignInException catch (e) {
+      // Handle explicit cancellation by the user
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        // User canceled, do nothing
+        return;
+      }
+      debugPrint("Error signing in with Google: $e");
+      _showError('Failed to sign in with Google. Please try again.');
     } catch (e) {
-      _showError('An unexpected error occurred during Google Sign-In.');
-    }
-
-    if (mounted) setState(() => _isGoogleLoading = false);
-  }
-
-  // Helper to reduce code duplication for showing errors
-  void _showError(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      // Handle generic errors
+      debugPrint("Error signing in with Google: $e");
+      _showError('Failed to sign in with Google. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
 
@@ -148,7 +192,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
+            // 1. Background Animation Layer
             ..._buildParticles(),
+            
+            // 2. Foreground Content Layer
             SafeArea(
               child: ResponsiveFormContainer(
                 child: SingleChildScrollView(
@@ -156,6 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // --- HEADER TEXT ---
                       const Text(
                         'Welcome Back',
                         style: TextStyle(
@@ -170,6 +218,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                       const SizedBox(height: 40),
+
+                      // --- LOGIN FORM CARD ---
                       GlassmorphicCard(
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
@@ -178,6 +228,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                // Email Field
                                 TextFormField(
                                   decoration: const InputDecoration(
                                     labelText: 'Email',
@@ -190,6 +241,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   onSaved: (value) => _email = value ?? '',
                                 ),
                                 const SizedBox(height: 16),
+                                
+                                // Password Field
                                 TextFormField(
                                   decoration: const InputDecoration(
                                     labelText: 'Password',
@@ -202,6 +255,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   onSaved: (value) => _password = value ?? '',
                                 ),
                                 const SizedBox(height: 32),
+                                
+                                // Login Button
                                 SizedBox(
                                   width: double.infinity,
                                   height: 50,
@@ -212,9 +267,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                         : const Text('Login'),
                                   ),
                                 ),
+                                
                                 const SizedBox(height: 20),
                                 const _OrDivider(),
                                 const SizedBox(height: 20),
+                                
+                                // Google Sign-In Button
                                 SizedBox(
                                   width: double.infinity,
                                   height: 50,
@@ -222,8 +280,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                       ? const Center(child: CircularProgressIndicator())
                                       : OutlinedButton.icon(
                                     icon: Image.asset(
-                                      'assets/images/google_logo.png', // Make sure you have this asset
+                                      'assets/images/google_logo.png',
                                       height: 24.0,
+                                      // Fallback icon if image is missing
+                                      errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.g_mobiledata, color: Colors.white, size: 24),
                                     ),
                                     label: const Text('Sign in with Google', style: TextStyle(color: Colors.white)),
                                     style: OutlinedButton.styleFrom(
@@ -237,7 +298,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           ),
                         ),
                       ),
+                      
                       const SizedBox(height: 24),
+                      
+                      // --- FOOTER LINKS ---
                       TextButton(
                         onPressed: () => context.go('/register'),
                         child: const Text(
@@ -256,17 +320,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
+  /// Builds the list of animated particle widgets based on the `_particles` data
   List<Widget> _buildParticles() {
-    // Extracted for cleanliness
     return _particles.map((particle) {
       return AnimatedBuilder(
         animation: _particleController,
         builder: (context, child) {
-          final screenHeight = MediaQuery.of(context).size.height;
+          // Use MediaQuery with a fallback for safety to determine screen bounds
+          final size = MediaQuery.maybeOf(context)?.size ?? const Size(400, 800);
           final animValue = (_particleController.value * particle.speed + particle.offsetY) % 1.0;
           return Positioned(
-            left: MediaQuery.of(context).size.width * particle.offsetX,
-            top: screenHeight * animValue - particle.size,
+            left: size.width * particle.offsetX,
+            top: size.height * animValue - particle.size,
             child: Opacity(
               opacity: (math.sin(animValue * math.pi) * 0.6).clamp(0.0, 0.6),
               child: Container(
@@ -286,6 +351,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 }
 
+/// Helper class to store properties for each background particle
 class _Particle {
   final Color color;
   final double size;
@@ -302,7 +368,7 @@ class _Particle {
   });
 }
 
-// Extracted the 'OR' divider into its own stateless widget for performance and readability
+/// A simple widget to render "------ OR ------" text with lines
 class _OrDivider extends StatelessWidget {
   const _OrDivider();
 
@@ -310,12 +376,12 @@ class _OrDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider()),
+        const Expanded(child: Divider(color: Colors.white30)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Text('OR', style: TextStyle(color: Colors.white.withOpacity(0.7))),
         ),
-        const Expanded(child: Divider()),
+        const Expanded(child: Divider(color: Colors.white30)),
       ],
     );
   }

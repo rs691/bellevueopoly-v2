@@ -13,7 +13,7 @@
       "state": "NE",
       "zip": "68123",
       "category": "Restaurant",
-      "heroImageUrl": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=80",
+      "heroImageUrl": "../assets/images/placeholder.png",
       "menuUrl": "https://www.chick-fil-a.com/menu",
       "hours": {
         "Mon-Sat": "6:30 AM - 10:00 PM",
@@ -28,7 +28,7 @@
       "state": "NE",
       "zip": "68005",
       "category": "Finance",
-      "heroImageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
+      "heroImageUrl": "./assets/images/food_placeholder.png",
       "menuUrl": "https://www.edwardjones.com",
       "hours": {
         "Mon-Fri": "8:00 AM - 5:00 PM",

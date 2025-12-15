@@ -13,9 +13,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    // Restore the timer to navigate to Landing after 3 seconds
     Timer(
       const Duration(seconds: 3),
-      () => context.go('/landing'),
+      () {
+        if (mounted) {
+          context.go('/landing');
+        }
+      },
     );
   }
 

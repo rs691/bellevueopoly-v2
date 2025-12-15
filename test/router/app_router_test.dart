@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
-import '../../lib/router/app_router.dart';
-import '../../lib/providers/auth_provider.dart';
+import 'package:myapp/router/app_router.dart';
+import 'package:myapp/providers/auth_provider.dart';
 
 // Create a FakeUser.
 // Since the router only checks (user != null), we don't need to implement functionality.

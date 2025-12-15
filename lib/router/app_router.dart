@@ -41,9 +41,12 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
 
+  // Check loading state explicitly
+  final isLoading = authState.isLoading;
+  
   final isAuthenticated = authState.when(
     data: (user) => user != null,
-    loading: () => false,
+    loading: () => false, // We handle loading separately in redirect
     error: (err, stack) => false,
   );
 
@@ -67,9 +70,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.upload, builder: (context, state) => const ImageUploadScreen()),
       GoRoute(path: AppRoutes.admin, builder: (context, state) => const AdminScreen()),
 
-
-
-
       // SHELL ROUTE (Persistent Bottom Nav)
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -92,15 +92,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 parentNavigatorKey: _rootNavigatorKey, // Covers the bottom nav
                 pageBuilder: (context, state) {
                   final String id = state.pathParameters['id']!;
-
                   return CustomTransitionPage(
                     key: state.pageKey,
                     child: BusinessDetailScreen(businessId: id),
                     barrierDismissible: true,
-                    barrierColor: Colors.black54, // Darkens the screen behind it
-                    opaque: false, // Allows transparency
+                    barrierColor: Colors.black54,
+                    opaque: false,
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      // Scale and Fade animation like a popup
                       return FadeTransition(
                         opacity: animation,
                         child: ScaleTransition(
@@ -116,11 +114,37 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-
           // 3. BUSINESS LIST
           GoRoute(
             path: AppRoutes.businesses,
             builder: (context, state) => const BusinessListScreen(),
+            routes: [
+              // Same modal route for the Business List tab
+              GoRoute(
+                path: AppRoutes.businessDetail,
+                parentNavigatorKey: _rootNavigatorKey,
+                pageBuilder: (context, state) {
+                  final String id = state.pathParameters['id']!;
+                  return CustomTransitionPage(
+                    key: state.pageKey,
+                    child: BusinessDetailScreen(businessId: id),
+                    barrierDismissible: true,
+                    barrierColor: Colors.black54,
+                    opaque: false,
+                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: ScaleTransition(
+                          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+                          child: child,
+                        ),
+                      );
+                    },
+                    transitionDuration: const Duration(milliseconds: 300),
+                  );
+                },
+              ),
+            ],
           ),
 
           // 4. PROFILE
@@ -132,20 +156,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) {
-      final location = state.matchedLocation;
-      if (location == AppRoutes.splash) return null;
+      // 1. If Auth State is still loading, force Splash Screen
+      if (isLoading) {
+        return AppRoutes.splash;
+      }
 
+      final location = state.matchedLocation;
+      
+      // 2. If Authenticated
       if (isAuthenticated) {
-        // If logged in and trying to access login/landing pages, send to HOME
-        if (location == AppRoutes.login ||
+        // Redirect to Home if trying to access public auth pages
+        if (location == AppRoutes.splash ||
+            location == AppRoutes.login ||
             location == AppRoutes.register ||
             location == AppRoutes.landing ||
             location == AppRoutes.welcome) {
-          return AppRoutes.home; // <--- Redirects to MobileLandingScreen
+          return AppRoutes.home;
         }
         return null;
-      } else {
+      } 
+      
+      // 3. If Not Authenticated
+      else {
+        // Allow public routes
         if (publicRoutes.contains(location)) return null;
+        
+        // Redirect all others to Landing
         return AppRoutes.landing;
       }
     },

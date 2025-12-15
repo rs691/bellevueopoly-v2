@@ -99,6 +99,19 @@ class FirestoreService {
     });
   }
 
+  Future<Business?> getBusinessById(String id) async {
+    try {
+      final doc = await _db.collection('businesses').doc(id).get();
+      if (!doc.exists) return null;
+      final data = doc.data()!;
+      data['id'] = doc.id;
+      return Business.fromJson(data);
+    } catch (e) {
+      print("❌ Error fetching business $id: $e");
+      return null;
+    }
+  }
+
   // ==============================================================================
   // SECTION 3: ADMIN LOGIC
   // ==============================================================================

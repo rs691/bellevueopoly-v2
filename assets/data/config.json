@@ -15,7 +15,7 @@
       "category": "Finance",
       "latitude": 41.136,
       "longitude": -95.925,
-      "heroImageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
+      "heroImageUrl": "../assets/images/food_placeholder.png",
       "menuUrl": "https://www.edwardjones.com",
       "hours": {
         "Mon-Fri": "8:00 AM - 5:00 PM",
@@ -32,7 +32,7 @@
       "category": "Advertising",
       "latitude": 41.138,
       "longitude": -95.922,
-      "heroImageUrl": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=800&q=80",
+      "heroImageUrl": "./assets/images/food_placeholder.png",
       "menuUrl": "https://www.lamar.com",
       "hours": {
         "Mon-Fri": "9:00 AM - 5:00 PM",

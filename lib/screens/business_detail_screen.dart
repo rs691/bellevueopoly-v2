@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../providers/config_provider.dart';
-import '../theme/app_theme.dart';
+import '../providers/business_provider.dart';
+import '../models/business_model.dart';
+import '../widgets/menu_card.dart';
 
-class BusinessDetailScreen extends ConsumerWidget {
+class BusinessDetailScreen extends ConsumerStatefulWidget {
   final String businessId;
 
   const BusinessDetailScreen({
@@ -14,192 +15,234 @@ class BusinessDetailScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final businessAsync = ref.watch(businessByIdProvider(businessId));
+  ConsumerState<BusinessDetailScreen> createState() => _BusinessDetailScreenState();
+}
+
+class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _scaleAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final businessAsync = ref.watch(businessByIdProvider(widget.businessId));
 
     return Scaffold(
-      // We keep the dimming here, but the GestureDetector below handles the tap
-      backgroundColor: Colors.black.withOpacity(0.8),
-      body: GestureDetector(
-        // KEY CHANGE 1: Detect taps on the background to close the modal
-        behavior: HitTestBehavior.opaque,
-        onTap: () => Navigator.of(context).pop(),
-        child: Center(
-          child: businessAsync.when(
-            loading: () => const CircularProgressIndicator(),
-            error: (err, stack) => Text('Error: $err', style: const TextStyle(color: Colors.white)),
-            data: (business) {
-              if (business == null) return const Text('Not Found', style: TextStyle(color: Colors.white));
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // Background dismiss
+          GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              color: Colors.black.withOpacity(0.7),
+            ),
+          ),
+          
+          // Animated Modal Content
+          Center(
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: businessAsync.when(
+                loading: () => const CircularProgressIndicator(),
+                error: (err, stack) => Text('Error: $err', style: const TextStyle(color: Colors.white)),
+                data: (business) {
+                  if (business == null) return const Text('Not Found', style: TextStyle(color: Colors.white));
 
-              // KEY CHANGE 2: Wrap the card in a GestureDetector to consume taps
-              // This prevents clicks INSIDE the card from closing the modal
-              return GestureDetector(
-                onTap: () {},
-                child: Hero(
-                  tag: 'business_card_${business.id}',
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    height: MediaQuery.of(context).size.height * 0.85,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E1E1E),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, spreadRadius: 5)
-                      ],
-                      border: Border.all(color: Colors.white.withOpacity(0.1)),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Stack(
-                        children: [
-                          CustomScrollView(
-                            slivers: [
-                              // 1. Hero Image Header
-                              SliverAppBar(
-                                automaticallyImplyLeading: false,
-                                expandedHeight: 250,
-                                backgroundColor: Colors.transparent,
-                                flexibleSpace: FlexibleSpaceBar(
-                                  background: business.heroImageUrl != null
+                  return GestureDetector(
+                    onTap: () {}, // Prevent tap through
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      height: MediaQuery.of(context).size.height * 0.8,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E1E),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20, spreadRadius: 5)
+                        ],
+                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Header Image
+                                SizedBox(
+                                  height: 200,
+                                  child: business.heroImageUrl != null
                                       ? CachedNetworkImage(
                                     imageUrl: business.heroImageUrl!,
                                     fit: BoxFit.cover,
                                   )
-                                      : Container(color: Colors.grey[800], child: const Icon(Icons.store, size: 60)),
+                                      : Container(
+                                    color: Colors.grey[800],
+                                    child: const Icon(Icons.store, size: 60, color: Colors.white54),
+                                  ),
                                 ),
-                              ),
 
-                              // 2. Body Content
-                              SliverToBoxAdapter(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Title and Category
-                                      Text(
-                                        business.name,
-                                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orangeAccent,
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          (business.category ?? 'Partner').toUpperCase(),
-                                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 24),
-
-                                      // Action Buttons
-                                      if (business.menuUrl != null || business.website != null)
-                                        Row(
-                                          children: [
-                                            if (business.menuUrl != null)
-                                              Expanded(
-                                                child: ElevatedButton.icon(
-                                                  icon: const Icon(Icons.restaurant_menu),
-                                                  label: const Text("View Menu"),
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: Colors.white,
-                                                    foregroundColor: Colors.black,
-                                                  ),
-                                                  onPressed: () => _launchUrl(business.menuUrl!),
-                                                ),
-                                              ),
-                                            if (business.menuUrl != null && business.website != null)
-                                              const SizedBox(width: 10),
-                                            if (business.website != null)
-                                              Expanded(
-                                                child: OutlinedButton.icon(
-                                                  icon: const Icon(Icons.language),
-                                                  label: const Text("Website"),
-                                                  style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
-                                                  onPressed: () => _launchUrl(business.website!),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-
-                                      const SizedBox(height: 24),
-
-                                      // Hours
-                                      if (business.hours != null) ...[
-                                        _buildSectionTitle(context, "Hours of Operation"),
-                                        const SizedBox(height: 10),
-                                        Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.05),
-                                            borderRadius: BorderRadius.circular(12),
+                                // Content
+                                Expanded(
+                                  child: SingleChildScrollView(
+                                    padding: const EdgeInsets.all(24.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Name and Category
+                                        Text(
+                                          business.name,
+                                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                          child: Column(
-                                            children: business.hours!.entries.map((entry) {
-                                              return Padding(
-                                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                                child: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    Text(entry.key, style: const TextStyle(color: Colors.white70)),
-                                                    Text(entry.value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                                  ],
-                                                ),
-                                              );
-                                            }).toList(),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orangeAccent,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            (business.category).toUpperCase(),
+                                            style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12),
                                           ),
                                         ),
                                         const SizedBox(height: 24),
-                                      ],
 
-                                      // Location
-                                      _buildSectionTitle(context, "Location"),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.location_on, color: Colors.white54),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Text(
-                                              business.address ?? "Address not available",
-                                              style: const TextStyle(color: Colors.white),
+                                        // Firestore Fields
+                                        _buildInfoRow(Icons.business, "ID (Name)", business.id),
+                                        _buildInfoRow(Icons.person, "Name", business.name),
+                                        _buildInfoRow(Icons.location_city, "City", "Bellevue"), // Assuming default or from address parsing
+                                        _buildInfoRow(Icons.map, "State", "NE"), // Assuming default
+                                        _buildInfoRow(Icons.location_on, "Street", business.address ?? "N/A"),
+                                        _buildInfoRow(Icons.markunread_mailbox, "Zip", "68005"), // Assuming default
+                                        _buildInfoRow(Icons.phone, "Phone", business.phoneNumber ?? "N/A"),
+                                        _buildInfoRow(Icons.language, "Website", business.website ?? "N/A"),
+                                        _buildInfoRow(Icons.location_on, "Latitude", business.latitude.toString()),
+                                        _buildInfoRow(Icons.location_on, "Longitude", business.longitude.toString()),
+
+
+
+
+                                        const SizedBox(height: 24),
+
+                                        // Menu Card Widget
+                                        if (business.menuUrl != null) ...[
+                                          const Text(
+                                            "Menu",
+                                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          AnimatedMenuCard(
+                                            icon: Icons.restaurant_menu,
+                                            title: "View Our Menu",
+                                            subtitle: "Check out our delicious offerings",
+                                            onTap: () => _launchUrl(business.menuUrl!),
+                                            width: double.infinity,
+                                            height: 100,
+                                          ),
+                                          const SizedBox(height: 24),
+                                        ],
+
+                                        // Website Button
+                                        if (business.website != null)
+                                          SizedBox(
+                                            width: double.infinity,
+                                            height: 50,
+                                            child: OutlinedButton.icon(
+                                              icon: const Icon(Icons.language),
+                                              label: const Text("Visit Website"),
+                                              style: OutlinedButton.styleFrom(
+                                                foregroundColor: Colors.white,
+                                                side: BorderSide(color: Colors.white.withOpacity(0.5)),
+                                              ),
+                                              onPressed: () => _launchUrl(business.website!),
                                             ),
                                           ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 40),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
 
-                          // KEY CHANGE 3: Removed the Positioned Close Button from here.
-                        ],
+                            // Close Button
+                            Positioned(
+                              top: 16,
+                              right: 16,
+                              child: GestureDetector(
+                                onTap: () => Navigator.of(context).pop(),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.close, color: Colors.white, size: 24),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Text(
-      title,
-      style: const TextStyle(color: Colors.white54, fontSize: 14, letterSpacing: 1.5, fontWeight: FontWeight.bold),
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.white54, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

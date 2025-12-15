@@ -13,7 +13,8 @@ class BusinessListScreen extends ConsumerStatefulWidget {
   ConsumerState<BusinessListScreen> createState() => _BusinessListScreenState();
 }
 
-class _BusinessListScreenState extends ConsumerState<BusinessListScreen> with SingleTickerProviderStateMixin {
+class _BusinessListScreenState extends ConsumerState<BusinessListScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -71,13 +72,18 @@ class _BusinessListScreenState extends ConsumerState<BusinessListScreen> with Si
                       ),
                     ),
                     child: SlideTransition(
-                      position: Tween<Offset>(
+                      position:
+                      Tween<Offset>(
                         begin: const Offset(0, 0.2), // Start slightly down
                         end: Offset.zero,
                       ).animate(
                         CurvedAnimation(
                           parent: _controller,
-                          curve: Interval(start, end, curve: Curves.easeOutQuad),
+                          curve: Interval(
+                            start,
+                            end,
+                            curve: Curves.easeOutQuad,
+                          ),
                         ),
                       ),
                       child: child,
@@ -104,10 +110,9 @@ class _BusinessListCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // Navigate to the Rich Profile
-        // Ensure your router handles this path: /map/business/:id or similar
-        // Since this is the "Directory" tab, we might need a specific route
-        // For now, assuming standard GoRouter path:
-        context.push('/map/business/${business.id}');
+        // This path is defined as a sub-route of /businesses in AppRouter
+        // ensuring the bottom nav and background context remain correct.
+            context.push('/businesses/business/${business.id}');
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -119,7 +124,7 @@ class _BusinessListCard extends StatelessWidget {
               color: Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Row(
@@ -177,10 +182,7 @@ class _BusinessListCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       business.address ?? '',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),

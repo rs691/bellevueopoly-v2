@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import '../../assets/data/config.json';
 import 'package:myapp/models/business_model.dart';
 import 'package:myapp/services/config_service.dart';
 
