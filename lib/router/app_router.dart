@@ -17,6 +17,8 @@ import '../screens/splash_screen.dart';
 import '../screens/welcome_screen.dart';
 import '../screens/mobile_landing_screen.dart';
 import '../screens/admin_screen.dart';
+import '../screens/game_screen.dart';
+import '../screens/leaderboard_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -33,6 +35,8 @@ class AppRoutes {
   static const String businessDetail = 'business/:id';
   static const String upload = '/upload';
   static const String admin = '/admin';
+  static const String game = '/game';
+  static const String leaderboard = '/leaderboard';
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -151,6 +155,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.profile,
             builder: (context, state) => const ProfileScreen(),
+          ),
+
+          // 5. GAME
+          GoRoute(
+            path: AppRoutes.game,
+            builder: (context, state) => const GameScreen(),
+          ),
+
+          // 6. LEADERBOARD
+          GoRoute(
+            path: AppRoutes.leaderboard,
+            builder: (context, state) => const LeaderboardScreen(),
           ),
         ],
       ),

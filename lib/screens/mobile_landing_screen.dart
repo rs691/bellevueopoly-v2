@@ -49,7 +49,14 @@ class MobileLandingScreen extends StatelessWidget {
               onTap: () => context.go(AppRoutes.admin),
               ),
 
-            // 5. Profile Tab
+            // 5. Game
+            NavigationBox(
+              icon: Icons.games,
+              label: 'Game',
+              onTap: () => context.go(AppRoutes.game),
+            ),
+
+            // 6. Profile Tab
             NavigationBox(
               icon: Icons.person,
               label: 'My Account',

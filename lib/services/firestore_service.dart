@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart'; // For rootBundle
 import '../models/business_model.dart';
+import '../models/player.dart'; // Import Player model
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -17,11 +18,13 @@ class FirestoreService {
   }) async {
     try {
       await _db.collection('users').doc(user.uid).set({
-        'username': username,
+        'id': user.uid, // Store ID in document
+        'name': username,
         'email': user.email,
         'createdAt': FieldValue.serverTimestamp(),
         'totalVisits': 0,
-        'propertiesOwned': [],
+        'balance': 0, // Initial points/balance
+        'ownedPropertyIds': [],
         'trophies': [],
       });
     } catch (e) {
@@ -54,6 +57,44 @@ class FirestoreService {
       print('Error incrementing user visits: $e');
       rethrow;
     }
+  }
+
+  // Add points to a user's balance
+  Future<void> addPoints(String uid, int points) async {
+    try {
+      await _db.collection('users').doc(uid).update({
+        'balance': FieldValue.increment(points),
+      });
+    } catch (e) {
+      print('Error adding points: $e');
+      // If document doesn't exist or field is missing, set it
+      // This is a fallback, but ideally user doc exists.
+    }
+  }
+
+  // Fetch Leaderboard (Top players by balance)
+  Stream<List<Player>> getLeaderboardStream({int limit = 10}) {
+    return _db.collection('users')
+        .orderBy('balance', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id; // Ensure ID is present
+        // Handle potential missing fields gracefully
+        return Player.fromJson({
+          ...data,
+          'name': data['name'] ?? 'Unknown Player',
+          'balance': data['balance'] ?? 0,
+          'ownedPropertyIds': data['ownedPropertyIds'] ?? [],
+          'totalVisits': data['totalVisits'] ?? 0,
+          'createdAt': data['createdAt'] is Timestamp 
+              ? (data['createdAt'] as Timestamp).toDate().toIso8601String() 
+              : DateTime.now().toIso8601String(),
+        });
+      }).toList();
+    });
   }
 
   // ==============================================================================
