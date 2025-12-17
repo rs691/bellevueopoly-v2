@@ -19,6 +19,8 @@ import '../screens/mobile_landing_screen.dart';
 import '../screens/admin_screen.dart';
 import '../screens/game_screen.dart';
 import '../screens/leaderboard_screen.dart';
+import '../screens/boulevard_partners_screen.dart';
+import '../screens/mock_location_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -73,6 +75,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.register, builder: (context, state) => const RegistrationScreen()),
       GoRoute(path: AppRoutes.upload, builder: (context, state) => const ImageUploadScreen()),
       GoRoute(path: AppRoutes.admin, builder: (context, state) => const AdminScreen()),
+      GoRoute(path: '/mock-location', builder: (context, state) => const MockLocationScreen()),
+      GoRoute(path: '/boulevard-partners', builder: (context, state) => const BoulevardPartnersScreen()),
 
       // SHELL ROUTE (Persistent Bottom Nav)
       ShellRoute(

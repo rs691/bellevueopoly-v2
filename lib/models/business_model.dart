@@ -3,27 +3,36 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Promotion {
   final String title;
   final String description;
+  final String code;
 
-  Promotion({required this.title, required this.description});
+  Promotion({
+    required this.title,
+    required this.description,
+    required this.code,
+  });
 
   factory Promotion.fromJson(Map<String, dynamic> json) {
     return Promotion(
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
+      code: json['code'] as String? ?? '',
     );
   }
 }
 
 class LoyaltyProgram {
-  final String title;
-  final String type;
+  final int totalCheckInsRequired;
+  final int currentCheckIns;
 
-  LoyaltyProgram({required this.title, required this.type});
+  LoyaltyProgram({
+    required this.totalCheckInsRequired,
+    required this.currentCheckIns,
+  });
 
   factory LoyaltyProgram.fromJson(Map<String, dynamic> json) {
     return LoyaltyProgram(
-      title: json['title'] as String? ?? '',
-      type: json['type'] as String? ?? '',
+      totalCheckInsRequired: json['totalCheckInsRequired'] as int? ?? 10,
+      currentCheckIns: json['currentCheckIns'] as int? ?? 0,
     );
   }
 }

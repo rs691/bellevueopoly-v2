@@ -120,6 +120,20 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
     }
   }
 
+  // --- FEATURE 4: Reset All Player Progress ---
+  Future<void> _resetAllPlayerProgress() async {
+    setState(() => _isLoading = true);
+    _log("\n♻️ RESETTING ALL PLAYER PROGRESS...");
+    try {
+      // await _firestoreService.resetAllPlayerProgress();
+      _log("✅ SUCCESS: All player progress has been reset. (Simulated)");
+    } catch (e) {
+      _log("❌ ERROR: Reset failed. $e");
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GradientBackground(
@@ -219,6 +233,38 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Game & Player Management Section
+              const Text("GAME & PLAYER MANAGEMENT", style: TextStyle(color: AppTheme.accentGreen, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              const SizedBox(height: 10),
+
+              ElevatedButton.icon(
+                icon: const Icon(Icons.restart_alt),
+                label: const Text("Reset All Player Progress"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: _isLoading ? null : _resetAllPlayerProgress,
+              ),
+
+              const SizedBox(height: 24),
+
+              // Testing Tools Section
+              const Text("TESTING TOOLS", style: TextStyle(color: AppTheme.accentGreen, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              const SizedBox(height: 10),
+
+              ElevatedButton.icon(
+                icon: const Icon(Icons.location_on_outlined),
+                label: const Text("Set Mock Location"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: () => context.go('/mock-location'),
               ),
 
               const SizedBox(height: 24),

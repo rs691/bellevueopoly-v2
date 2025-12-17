@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/business_model.dart';
 import '../services/firestore_service.dart';
-import '../services/location_service.dart';
 import 'business_provider.dart';
 import 'location_provider.dart';
 import 'auth_provider.dart';
@@ -25,16 +24,21 @@ class GameController {
   static const Duration _cooldownDuration = Duration(minutes: 5);
   
   // Distance threshold in meters (approx 100 feet)
-  static const double _visitThreshold = 30.48; 
+  static const double _visitThreshold = 30.48;
+  
+  // Track if we're currently processing a proximity check to avoid concurrent calls
+  bool _isProcessingProximity = false;
 
   GameController(this._ref);
 
   // Called when the Game Screen initializes to start listening
   void startGameLoop(BuildContext context) {
+    print('Game loop started');
     // Listen to location updates
     _ref.listen<AsyncValue<Position?>>(userLocationProvider, (previous, next) {
       next.whenData((position) {
         if (position != null) {
+          print('Location updated: ${position.latitude}, ${position.longitude}');
           _checkProximity(context, position);
         }
       });
@@ -42,26 +46,37 @@ class GameController {
   }
 
   void _checkProximity(BuildContext context, Position userPos) {
-    // Get the list of businesses
-    final businessesAsync = _ref.read(businessListProvider);
+    // Guard against concurrent proximity checks
+    if (_isProcessingProximity) {
+      return;
+    }
     
-    businessesAsync.whenData((businesses) {
-      for (var business in businesses) {
-        if (business.latitude != 0.0 && business.longitude != 0.0) {
-          
-          final double distance = Geolocator.distanceBetween(
-            userPos.latitude,
-            userPos.longitude,
-            business.latitude,
-            business.longitude,
-          );
+    _isProcessingProximity = true;
+    
+    try {
+      // Get the list of businesses
+      final businessesAsync = _ref.read(businessListProvider);
+      
+      businessesAsync.whenData((businesses) {
+        for (var business in businesses) {
+          if (business.latitude != 0.0 && business.longitude != 0.0) {
+            
+            final double distance = Geolocator.distanceBetween(
+              userPos.latitude,
+              userPos.longitude,
+              business.latitude,
+              business.longitude,
+            );
 
-          if (distance <= _visitThreshold) {
-            _triggerVisit(context, business);
+            if (distance <= _visitThreshold) {
+              _triggerVisit(context, business);
+            }
           }
         }
-      }
-    });
+      });
+    } finally {
+      _isProcessingProximity = false;
+    }
   }
 
   Future<void> _triggerVisit(BuildContext context, Business business) async {
@@ -84,7 +99,10 @@ class GameController {
       // 1. Add Points
       await _firestoreService.addPoints(user.uid, 10);
 
-      // 2. Show Notification (if context is valid)
+      // 2. Record Check-in (for loyalty program)
+      await _firestoreService.recordCheckIn(user.uid, business.id);
+
+      // 3. Show Notification (if context is valid)
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

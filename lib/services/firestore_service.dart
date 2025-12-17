@@ -188,4 +188,72 @@ class FirestoreService {
       rethrow;
     }
   }
+
+  // ==============================================================================
+  // SECTION 5: CHECK-IN TRACKING (Loyalty Program)
+  // ==============================================================================
+
+  /// Record a visit/check-in to a business
+  Future<void> recordCheckIn(String userId, String businessId) async {
+    try {
+      final userRef = _db.collection('users').doc(userId);
+
+      // Increment total check-ins for this business
+      await userRef.collection('businessCheckIns').doc(businessId).set(
+        {
+          'count': FieldValue.increment(1),
+          'lastCheckIn': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+
+      // Also update user's totalVisits
+      await userRef.update({
+        'totalVisits': FieldValue.increment(1),
+      });
+    } catch (e) {
+      print('Error recording check-in: $e');
+      rethrow;
+    }
+  }
+
+  /// Get the number of check-ins for a specific business
+  Future<int> getBusinessCheckIns(String userId, String businessId) async {
+    try {
+      final doc = await _db
+          .collection('users')
+          .doc(userId)
+          .collection('businessCheckIns')
+          .doc(businessId)
+          .get();
+
+      if (doc.exists) {
+        return doc.data()?['count'] as int? ?? 0;
+      }
+      return 0;
+    } catch (e) {
+      print('Error getting business check-ins: $e');
+      return 0;
+    }
+  }
+
+  /// Get all check-ins for a user across all businesses
+  Future<Map<String, int>> getAllBusinessCheckIns(String userId) async {
+    try {
+      final snapshot = await _db
+          .collection('users')
+          .doc(userId)
+          .collection('businessCheckIns')
+          .get();
+
+      final result = <String, int>{};
+      for (final doc in snapshot.docs) {
+        result[doc.id] = doc.data()['count'] as int? ?? 0;
+      }
+      return result;
+    } catch (e) {
+      print('Error getting all business check-ins: $e');
+      return {};
+    }
+  }
 }

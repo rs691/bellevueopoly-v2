@@ -172,7 +172,7 @@ class _BusinessListCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      business.category ?? 'Business',
+                      business.category,
                       style: TextStyle(
                         color: AppTheme.accentOrange, // Use your theme color
                         fontSize: 12,
