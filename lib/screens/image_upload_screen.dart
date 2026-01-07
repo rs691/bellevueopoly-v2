@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
+import '../services/storage_service.dart';
 
 class ImageUploadScreen extends StatefulWidget {
   const ImageUploadScreen({super.key});
@@ -12,8 +14,10 @@ class ImageUploadScreen extends StatefulWidget {
 
 class _ImageUploadScreenState extends State<ImageUploadScreen> {
   final ImagePicker _picker = ImagePicker();
+  final StorageService _storageService = StorageService();
   final List<XFile> _selectedImages = [];
   bool _isUploading = false;
+  String _selectedCategory = 'general';
 
   Future<void> _pickImages() async {
     // Allows selecting multiple images from the gallery
@@ -36,24 +40,58 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
     setState(() {
       _isUploading = true;
     });
+    try {
+      // Prepare files for upload
+      final List<dynamic> filesToUpload = [];
+      
+      if (kIsWeb) {
+        // For web, read as bytes
+        for (var image in _selectedImages) {
+          final bytes = await image.readAsBytes();
+          filesToUpload.add(bytes);
+        }
+      } else {
+        // For mobile, use File objects
+        for (var image in _selectedImages) {
+          filesToUpload.add(File(image.path));
+        }
+      }
 
-    // --- Placeholder for actual upload logic ---
-    // In a real app, you would loop through _selectedImages
-    // and upload each file to Firebase Storage or another service.
-    await Future.delayed(const Duration(seconds: 3));
-    // --- End of placeholder ---
+      // Upload to Firebase Storage
+      final downloadUrls = await _storageService.uploadMultipleImages(
+        imageFiles: filesToUpload,
+        category: _selectedCategory,
+      );
 
-    setState(() {
-      _isUploading = false;
-    });
+      if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Upload complete (simulation)!')),
-    );
-    // Optionally, clear the list after upload
-    // setState(() {
-    //   _selectedImages = [];
-    // });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✓ Successfully uploaded ${downloadUrls.length} images!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Clear the list after successful upload
+      setState(() {
+        _selectedImages.clear();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Upload failed: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -72,6 +110,27 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Category selector
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: const InputDecoration(
+                labelText: 'Image Category',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'general', child: Text('General')),
+                DropdownMenuItem(value: 'review', child: Text('Business Review')),
+                DropdownMenuItem(value: 'checkin', child: Text('Check-in Photo')),
+                DropdownMenuItem(value: 'event', child: Text('Event')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategory = value ?? 'general';
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            
             // 1. The image selection button
             OutlinedButton.icon(
               icon: const Icon(Icons.photo_library),
@@ -88,28 +147,41 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
             Expanded(
               child: _selectedImages.isEmpty
                   ? const Center(
-                child: Text(
-                  'No images selected.',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              )
+                      child: Text(
+                        'No images selected.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
                   : GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: _selectedImages.length,
-                itemBuilder: (context, index) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.file(
-                      File(_selectedImages[index].path),
-                      fit: BoxFit.cover,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                      itemCount: _selectedImages.length,
+                      itemBuilder: (context, index) {
+                        final image = _selectedImages[index];
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: kIsWeb
+                              ? Image.network(
+                                  image.path,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.grey[300],
+                                      child: const Icon(Icons.image),
+                                    );
+                                  },
+                                )
+                              : Image.file(
+                                  File(image.path),
+                                  fit: BoxFit.cover,
+                                ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
             const SizedBox(height: 20),
 
@@ -117,16 +189,16 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
             _isUploading
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton.icon(
-              icon: const Icon(Icons.cloud_upload),
-              label: Text('Upload (${_selectedImages.length}) Images'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                textStyle: const TextStyle(fontSize: 18),
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: _handleUpload,
-            ),
+                    icon: const Icon(Icons.cloud_upload),
+                    label: Text('Upload (${_selectedImages.length}) Images'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      textStyle: const TextStyle(fontSize: 18),
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: _handleUpload,
+                  ),
           ],
         ),
       ),

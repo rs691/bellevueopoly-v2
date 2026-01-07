@@ -13,7 +13,7 @@
       "state": "NE",
       "zip": "68123",
       "category": "Restaurant",
-      "heroImageUrl": "../assets/images/placeholder.png",
+      "heroImageUrl": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=80",
       "menuUrl": "https://www.chick-fil-a.com/menu",
       "hours": {
         "Mon-Sat": "6:30 AM - 10:00 PM",
@@ -28,7 +28,7 @@
       "state": "NE",
       "zip": "68005",
       "category": "Finance",
-      "heroImageUrl": "./assets/images/food_placeholder.png",
+      "heroImageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
       "menuUrl": "https://www.edwardjones.com",
       "hours": {
         "Mon-Fri": "8:00 AM - 5:00 PM",
@@ -345,7 +345,8 @@
       "hours": {
         "Mon-Fri": "9:00 AM - 6:00 PM",
         "Sat": "10:00 AM - 2:00 PM"
-      }
+      },
+      "secretCode": "secret_ame-computers_dwic1j"
     },
     {
       "id": "centris-federal-credit-union",

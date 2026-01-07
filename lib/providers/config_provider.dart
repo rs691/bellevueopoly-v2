@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'firestore_provider.dart';
 // FIX: Correct imports for your file structure
 import '../models/business_model.dart';
 import '../services/config_service.dart';
@@ -16,16 +17,20 @@ final cityConfigProvider = FutureProvider<CityConfig>((ref) async {
   return configService.cityConfig;
 });
 
-// Businesses provider
+// Businesses provider (ALIASES)
+// We alias this to the one in business_provider or just reimplement using Firestore
 final businessesProvider = FutureProvider<List<Business>>((ref) async {
-  final configService = ref.watch(configServiceProvider);
-  await configService.initialize('assets/data.json');
-  return configService.businesses;
+  final firestoreService = ref.read(firestoreServiceProvider);
+  return firestoreService.getBusinesses();
 });
 
-// Single business provider
+// Single business provider (ALIASES)
 final businessByIdProvider = FutureProvider.family<Business?, String>((ref, id) async {
-  final configService = ref.watch(configServiceProvider);
-  await configService.initialize('assets/data.json');
-  return configService.getBusinessById(id);
+  final firestoreService = ref.read(firestoreServiceProvider);
+  final businesses = await firestoreService.getBusinesses();
+  try {
+     return businesses.firstWhere((b) => b.id == id);
+  } catch (e) {
+    return null;
+  }
 });

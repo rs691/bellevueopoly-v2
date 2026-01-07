@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmf;
 import '../models/business_model.dart';
-import '../providers/config_provider.dart'; 
-import '../providers/business_provider.dart'; // Import the Firestore provider
+import '../providers/config_provider.dart'; // FIX: Use correct provider import
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -14,40 +13,37 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  gmf.GoogleMapController? _mapController;
   Set<gmf.Marker> _markers = {};
 
   @override
   void initState() {
     super.initState();
-  }
-
-  void _onMapCreated(gmf.GoogleMapController controller) {
-    _mapController = controller;
+    // No need to call _updateMarkers here manually if we watch the provider below,
+    // but usually good to sync once data is loaded.
   }
 
   @override
   Widget build(BuildContext context) {
-    // 1. Watch the Firestore business list
-    final businessesAsync = ref.watch(businessListProvider);
-    // 2. Keep using config for city center/zoom if needed
+    // 1. Watch the providers
+    final businessesAsync = ref.watch(businessesProvider);
     final cityConfigAsync = ref.watch(cityConfigProvider);
 
-    // 3. Handle Marker Logic when data arrives
-    ref.listen<AsyncValue<List<Business>>>(businessListProvider, (previous, next) {
+    // 2. Handle Marker Logic when data arrives
+    ref.listen<AsyncValue<List<Business>>>(businessesProvider, (previous, next) {
       next.whenData((businesses) {
         setState(() {
           _markers = businesses
+          // FIX: The new model uses latitude/longitude directly, not business.location
               .where((b) => b.latitude != 0.0 && b.longitude != 0.0)
               .map((business) => gmf.Marker(
             markerId: gmf.MarkerId(business.id),
+            // FIX: Direct access to fields
             position: gmf.LatLng(business.latitude, business.longitude),
             infoWindow: gmf.InfoWindow(
               title: business.name,
-              // Note: onTap in InfoWindow works on some platforms, but Marker onTap is safer
-              onTap: () => context.go('/map/business/${business.id}'),
+              onTap: () => context.push('/business/${business.id}'),
             ),
-            onTap: () => context.go('/map/business/${business.id}'),
+            onTap: () => context.push('/business/${business.id}'),
           ))
               .toSet();
         });
@@ -72,7 +68,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error loading city: $err')),
         data: (cityConfig) {
-          // Use hardcoded defaults if config is missing lat/lng
+          // FIX: Your new CityConfig model doesn't have lat/lng/zoom.
+          // We will use hardcoded defaults for Bellevue, NE for now.
           const double defaultLat = 41.15;
           const double defaultLng = -95.92;
           const double defaultZoom = 13.0;
@@ -82,7 +79,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           return Stack(
             children: [
               gmf.GoogleMap(
-                onMapCreated: _onMapCreated,
                 initialCameraPosition: gmf.CameraPosition(
                   target: initialPosition,
                   zoom: defaultZoom,
@@ -110,35 +106,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       loading: () => const SizedBox.shrink(),
       error: (err, stack) => const SizedBox.shrink(),
       data: (businesses) {
-        final validBusinesses = businesses
-            .where((b) => b.latitude != 0.0 && b.longitude != 0.0)
-            .toList();
-
-        if (validBusinesses.isEmpty) return const SizedBox.shrink();
-
         return SizedBox(
           height: 160, // Slightly taller for better touch targets
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: validBusinesses.length,
+            itemCount: businesses.length,
             itemBuilder: (context, index) {
-              final business = validBusinesses[index];
+              final business = businesses[index];
+              // FIX: Direct field access check
+              if (business.latitude == 0.0 && business.longitude == 0.0) {
+                return const SizedBox.shrink();
+              }
               return _BusinessCard(
                 business: business,
-                onTap: () {
-                  // Animate map to location
-                  _mapController?.animateCamera(
-                    gmf.CameraUpdate.newLatLng(
-                      gmf.LatLng(business.latitude, business.longitude),
-                    ),
-                  );
-                  // Then open detail
-                  // We might delay slightly or just let the user tap the marker?
-                  // The prompt asked for "clickable map marker".
-                  // But usually list items also open the detail.
-                  context.go('/map/business/${business.id}');
-                },
+                onTap: () => context.push('/business/${business.id}'),
               );
             },
           ),
@@ -178,7 +160,7 @@ class _BusinessCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  business.category, 
+                  business.category, // Now non-nullable in your new model
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 8),

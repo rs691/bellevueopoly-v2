@@ -10,3 +10,4 @@ export 'business_list_screen.dart';
 export 'login_screen.dart';
 export 'registration_screen.dart';
 export 'stop_hub_screen.dart';
+export 'game_hub_screen.dart';

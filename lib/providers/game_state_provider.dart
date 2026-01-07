@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:myapp/models/business.dart'; // Added import for the correct Business model
-// import '../models/index.dart'; // Removed old import
+import '../models/business_model.dart';
 
 // Assuming Property class is defined elsewhere or will be created later
 // For now, let's assume a simple Property class definition for compilation.
@@ -39,9 +38,9 @@ class Property {
 
 // Game state - track properties and ownership
 final gameStateProvider =
-StateNotifierProvider<GameStateNotifier, Map<String, Property>>((ref) {
-  return GameStateNotifier();
-});
+    StateNotifierProvider<GameStateNotifier, Map<String, Property>>((ref) {
+      return GameStateNotifier();
+    });
 
 class GameStateNotifier extends StateNotifier<Map<String, Property>> {
   GameStateNotifier() : super({});

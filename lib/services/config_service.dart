@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import '../models/business_model.dart';
 
@@ -57,11 +58,11 @@ class ConfigService {
         _cityConfig = CityConfig(name: 'Bellevue', state: 'NE', zipCode: '68005');
         _parseBusinesses(jsonData);
       } else {
-        print('CRITICAL: Unknown JSON format in $configPath');
+        debugPrint('CRITICAL: Unknown JSON format in $configPath');
       }
 
     } catch (e) {
-      print('CRITICAL: Failed to load config from $configPath: $e');
+      debugPrint('CRITICAL: Failed to load config from $configPath: $e');
       _businesses = [];
       _cityConfig = CityConfig(name: "Error", state: "", zipCode: "");
     }
@@ -73,7 +74,7 @@ class ConfigService {
       try {
         _businesses!.add(Business.fromJson(b as Map<String, dynamic>));
       } catch (e) {
-        print('Skipping invalid business entry: $e');
+        debugPrint('Skipping invalid business entry: $e');
       }
     }
   }

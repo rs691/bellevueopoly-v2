@@ -1,41 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-class Promotion {
-  final String title;
-  final String description;
-  final String code;
-
-  Promotion({
-    required this.title,
-    required this.description,
-    required this.code,
-  });
-
-  factory Promotion.fromJson(Map<String, dynamic> json) {
-    return Promotion(
-      title: json['title'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      code: json['code'] as String? ?? '',
-    );
-  }
-}
-
-class LoyaltyProgram {
-  final int totalCheckInsRequired;
-  final int currentCheckIns;
-
-  LoyaltyProgram({
-    required this.totalCheckInsRequired,
-    required this.currentCheckIns,
-  });
-
-  factory LoyaltyProgram.fromJson(Map<String, dynamic> json) {
-    return LoyaltyProgram(
-      totalCheckInsRequired: json['totalCheckInsRequired'] as int? ?? 10,
-      currentCheckIns: json['currentCheckIns'] as int? ?? 0,
-    );
-  }
-}
+import 'business.dart';
 
 class Business {
   final String id;
@@ -54,12 +17,8 @@ class Business {
   // NEW FIELDS
   final Map<String, String>? hours; // e.g., {"Mon-Fri": "9am-5pm"}
   final String? menuUrl;
-
-  // Address components as requested
-  final String? street;
-  final String? city;
-  final String? state;
-  final String? zipCode;
+  final String? secretCode;
+  final int? checkInPoints;
 
   Business({
     required this.id,
@@ -76,10 +35,8 @@ class Business {
     this.loyaltyProgram,
     this.hours,
     this.menuUrl,
-    this.street,
-    this.city,
-    this.state,
-    this.zipCode,
+    this.secretCode,
+    this.checkInPoints,
   });
 
   factory Business.fromJson(Map<String, dynamic> json) {
@@ -100,23 +57,12 @@ class Business {
       loyaltyProgram: json['loyaltyProgram'] != null
           ? LoyaltyProgram.fromJson(json['loyaltyProgram'] as Map<String, dynamic>)
           : null,
+      // PARSE NEW FIELDS
       hours: json['hours'] != null ? Map<String, String>.from(json['hours']) : null,
       menuUrl: json['menuUrl'] as String?,
-      
-      // Parse new fields if they exist, fallback to parsing address if needed, or null
-      street: json['street'] as String? ?? json['address'] as String?,
-      city: json['city'] as String?,
-      state: json['state'] as String?,
-      zipCode: json['zip'] as String? ?? json['zipCode'] as String?,
+      secretCode: json['secretCode'] as String? ?? 'SECRET',
+      checkInPoints: json['checkInPoints'] as int? ?? 100,
     );
   }
-
-  // Factory to create Business from Firestore DocumentSnapshot
-  factory Business.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return Business.fromJson({
-      'id': doc.id,
-      ...data,
-    });
-  }
 }
+// ... Promotion and LoyaltyProgram classes remain the same

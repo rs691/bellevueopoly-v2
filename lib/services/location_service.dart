@@ -28,7 +28,9 @@ class LocationService {
       }
 
       return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
     } catch (e) {
       print('Error getting location: $e');

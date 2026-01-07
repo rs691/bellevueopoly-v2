@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+import 'package:firebase_auth/firebase_auth.dart';
+import '../widgets/logout_confirmation_dialog.dart';
 
 class MyAccountOptionsScreen extends ConsumerWidget {
   const MyAccountOptionsScreen({super.key});
@@ -9,9 +10,7 @@ class MyAccountOptionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Account'),
-      ),
+      appBar: AppBar(title: const Text('My Account')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -44,7 +43,8 @@ class MyAccountOptionsScreen extends ConsumerWidget {
                       title: const Text('Edit Profile'),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Edit Profile tapped')));
+                          const SnackBar(content: Text('Edit Profile tapped')),
+                        );
                       },
                     ),
                     ListTile(
@@ -52,7 +52,10 @@ class MyAccountOptionsScreen extends ConsumerWidget {
                       title: const Text('Change Password'),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Change Password tapped')));
+                          const SnackBar(
+                            content: Text('Change Password tapped'),
+                          ),
+                        );
                       },
                     ),
                     ListTile(
@@ -60,21 +63,17 @@ class MyAccountOptionsScreen extends ConsumerWidget {
                       title: const Text('App Settings'),
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('App Settings tapped')));
+                          const SnackBar(content: Text('App Settings tapped')),
+                        );
                       },
                     ),
                     ListTile(
                       leading: const Icon(Icons.logout, color: Colors.red),
-                      title: const Text('Logout', style: TextStyle(color: Colors.red)),
-                      onTap: () async {
-                        // Corrected logout logic to use FirebaseAuth directly
-                        await FirebaseAuth.instance.signOut();
-                        if (context.mounted) {
-                          context.go('/landing');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Logged out successfully')));
-                        }
-                      },
+                      title: const Text(
+                        'Logout',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                      onTap: () => LogoutConfirmationDialog.show(context),
                     ),
                   ],
                 ),

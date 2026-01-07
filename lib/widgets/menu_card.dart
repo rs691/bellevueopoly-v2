@@ -49,7 +49,7 @@ class _AnimatedMenuCardState extends State<AnimatedMenuCard> {
             boxShadow: _isHovered
                 ? [
               BoxShadow(
-                color: const Color(0xFFa855f7).withOpacity(0.5),
+                color: const Color(0xFFa855f7).withValues(alpha: 0.5),
                 blurRadius: 15,
                 spreadRadius: 2,
               ),
@@ -92,7 +92,7 @@ class StyledSearchBar extends StatelessWidget {
         hintText: hintText,
         hintStyle: const TextStyle(color: Colors.white54),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
+        fillColor: Colors.white.withValues(alpha: 0.1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -106,3 +106,4 @@ class StyledSearchBar extends StatelessWidget {
     );
   }
 }
+

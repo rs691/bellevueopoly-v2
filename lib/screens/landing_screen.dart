@@ -42,9 +42,9 @@ class _LandingScreenState extends State<LandingScreen>
 
   Color _getRandomColor() {
     final colors = [
-      Colors.pinkAccent.withOpacity(0.3),
-      Colors.purpleAccent.withOpacity(0.3),
-      Colors.orangeAccent.withOpacity(0.3),
+      Colors.pinkAccent.withValues(alpha: 0.3),
+      Colors.purpleAccent.withValues(alpha: 0.3),
+      Colors.orangeAccent.withValues(alpha: 0.3),
     ];
     return colors[math.Random().nextInt(colors.length)];
   }
@@ -129,7 +129,7 @@ class _LandingScreenState extends State<LandingScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: particle.color.withOpacity(0.4),
+                      color: particle.color.withValues(alpha: 0.4),
                       blurRadius: 10,
                     ),
                   ],
@@ -155,12 +155,12 @@ class _LandingScreenState extends State<LandingScreen>
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFec4899).withOpacity(0.6),
+            color: const Color(0xFFec4899).withValues(alpha: 0.6),
             blurRadius: 40,
             spreadRadius: 5,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -183,11 +183,11 @@ class _LandingScreenState extends State<LandingScreen>
             height: 0.9,
             shadows: [
               Shadow(
-                color: const Color(0xFFec4899).withOpacity(0.8),
+                color: const Color(0xFFec4899).withValues(alpha: 0.8),
                 blurRadius: 20,
               ),
               Shadow(
-                color: const Color(0xFFa855f7).withOpacity(0.6),
+                color: const Color(0xFFa855f7).withValues(alpha: 0.6),
                 blurRadius: 40,
               ),
               const Shadow(color: Colors.black38, offset: Offset(4, 4)),
@@ -204,11 +204,11 @@ class _LandingScreenState extends State<LandingScreen>
             height: 0.9,
             shadows: [
               Shadow(
-                color: const Color(0xFFec4899).withOpacity(0.8),
+                color: const Color(0xFFec4899).withValues(alpha: 0.8),
                 blurRadius: 20,
               ),
               Shadow(
-                color: const Color(0xFFa855f7).withOpacity(0.6),
+                color: const Color(0xFFa855f7).withValues(alpha: 0.6),
                 blurRadius: 40,
               ),
               const Shadow(color: Colors.black38, offset: Offset(4, 4)),
@@ -231,12 +231,12 @@ class _LandingScreenState extends State<LandingScreen>
         border: Border.all(color: Colors.white, width: 3),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFa855f7).withOpacity(0.5),
+            color: const Color(0xFFa855f7).withValues(alpha: 0.5),
             blurRadius: 30,
             spreadRadius: 2,
           ),
           BoxShadow(
-            color: const Color(0xFFa855f7).withOpacity(0.3),
+            color: const Color(0xFFa855f7).withValues(alpha: 0.3),
             blurRadius: 20,
           ),
         ],
@@ -341,3 +341,4 @@ class _Particle {
     required this.speed,
   });
 }
+

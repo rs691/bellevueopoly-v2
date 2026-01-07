@@ -7,6 +7,7 @@
   "businesses": [
     {
       "id": "edward-jones",
+      "secretCode": "secret_edward-jones",
       "name": "Edward Jones",
       "street": "1103 Galvin Rd S Suite C",
       "city": "Bellevue",
@@ -15,7 +16,7 @@
       "category": "Finance",
       "latitude": 41.136,
       "longitude": -95.925,
-      "heroImageUrl": "../assets/images/food_placeholder.png",
+      "heroImageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
       "menuUrl": "https://www.edwardjones.com",
       "hours": {
         "Mon-Fri": "8:00 AM - 5:00 PM",
@@ -24,6 +25,7 @@
     },
     {
       "id": "lamar-outdoor-advertising",
+      "secretCode": "secret_lamar-outdoor-advertising",
       "name": "Lamar Outdoor Advertising",
       "street": "1036 Bruin Blvd",
       "city": "Bellevue",
@@ -32,7 +34,7 @@
       "category": "Advertising",
       "latitude": 41.138,
       "longitude": -95.922,
-      "heroImageUrl": "./assets/images/food_placeholder.png",
+      "heroImageUrl": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=800&q=80",
       "menuUrl": "https://www.lamar.com",
       "hours": {
         "Mon-Fri": "9:00 AM - 5:00 PM",
@@ -41,6 +43,7 @@
     },
     {
       "id": "iheartmedia",
+      "secretCode": "secret_iheartmedia",
       "name": "iHeartMedia",
       "street": "5010 Underwood Ave",
       "city": "Omaha",
@@ -58,6 +61,7 @@
     },
     {
       "id": "cs-services-heating-and-cooling-llc",
+      "secretCode": "secret_cs-services-heating-and-cooling-llc",
       "name": "CS Services Heating and Cooling LLC",
       "street": "706 Fort Crook Rd N",
       "city": "Bellevue",
@@ -76,6 +80,7 @@
     },
     {
       "id": "west-gate-bank",
+      "secretCode": "secret_west-gate-bank",
       "name": "West Gate Bank",
       "street": "1004 Cornhusker Rd",
       "city": "Bellevue",
@@ -94,6 +99,7 @@
     },
     {
       "id": "athena-arms",
+      "secretCode": "secret_athena-arms",
       "name": "Athena Arms",
       "street": "3403 Samson Way",
       "city": "Bellevue",
@@ -111,6 +117,7 @@
     },
     {
       "id": "erwins-jewelers-co",
+      "secretCode": "secret_erwins-jewelers-co",
       "name": "Erwin's Jewelers Co.",
       "street": "223 W Mission Ave",
       "city": "Bellevue",
@@ -129,6 +136,7 @@
     },
     {
       "id": "chick-fil-a-cornhusker",
+      "secretCode": "secret_chick-fil-a-cornhusker",
       "name": "Chick-fil-A",
       "street": "2016 Cornhusker Rd",
       "city": "Bellevue",
@@ -146,6 +154,7 @@
     },
     {
       "id": "dip-cravers-dip-n-sip",
+      "secretCode": "secret_dip-cravers-dip-n-sip",
       "name": "Dip Cravers (Dip N Sip)",
       "street": "2217 Franklin St",
       "city": "Bellevue",
@@ -162,6 +171,7 @@
     },
     {
       "id": "holland-basham-architects",
+      "secretCode": "secret_holland-basham-architects",
       "name": "Holland Basham Architects",
       "street": "119 S 49th Ave",
       "city": "Omaha",
@@ -179,6 +189,7 @@
     },
     {
       "id": "the-light-house-cafe",
+      "secretCode": "secret_the-light-house-cafe",
       "name": "The Light House Cafe (Lighthouse Coffee)",
       "street": "119 W Mission Ave",
       "city": "Bellevue",
@@ -196,6 +207,7 @@
     },
     {
       "id": "bellevue-chamber-of-commerce",
+      "secretCode": "secret_bellevue-chamber-of-commerce",
       "name": "Bellevue Chamber of Commerce",
       "street": "1036 Bruin Blvd",
       "city": "Bellevue",
@@ -213,6 +225,7 @@
     },
     {
       "id": "twisted-thunder-fireworks",
+      "secretCode": "secret_twisted-thunder-fireworks",
       "name": "Twisted Thunder Fireworks (Twister Fireworks)",
       "street": "601 Chateau Dr",
       "city": "Bellevue",
@@ -229,6 +242,7 @@
     },
     {
       "id": "royalty-roofing-and-siding",
+      "secretCode": "secret_royalty-roofing-and-siding",
       "name": "Royalty Roofing & Siding",
       "street": "2803 Jack Pine St",
       "city": "Bellevue",
@@ -246,6 +260,7 @@
     },
     {
       "id": "dleons-taco-rico",
+      "secretCode": "secret_dleons-taco-rico",
       "name": "D'Leon's Taco Rico",
       "street": "3512 Samson Way",
       "city": "Bellevue",
@@ -262,6 +277,7 @@
     },
     {
       "id": "live-your-best-life-salon",
+      "secretCode": "secret_live-your-best-life-salon",
       "name": "Live Your Best Life Salon (Salon Life)",
       "street": "101 W Mission Ave Suite A",
       "city": "Bellevue",
@@ -279,6 +295,7 @@
     },
     {
       "id": "bellevue-little-theatre",
+      "secretCode": "secret_bellevue-little-theatre",
       "name": "Bellevue Little Theatre",
       "street": "203 W Mission Ave",
       "city": "Bellevue",
@@ -295,6 +312,7 @@
     },
     {
       "id": "the-landings-apartments",
+      "secretCode": "secret_the-landings-apartments",
       "name": "The Landings Apartments (Landing Zone)",
       "street": "10215 Cape Cod Lndg",
       "city": "Bellevue",
@@ -312,6 +330,7 @@
     },
     {
       "id": "remedy-health-med-spa",
+      "secretCode": "secret_remedy-health-med-spa",
       "name": "Remedy Health (Med Spa)",
       "street": "1320 Galvin Rd S",
       "city": "Bellevue",
@@ -329,6 +348,7 @@
     },
     {
       "id": "teammates-mentoring-program",
+      "secretCode": "secret_teammates-mentoring-program",
       "name": "TeamMates Mentoring Program",
       "street": "2600 Arboretum Dr",
       "city": "Bellevue",
@@ -345,6 +365,7 @@
     },
     {
       "id": "first-interstate-bank",
+      "secretCode": "secret_first-interstate-bank",
       "name": "First Interstate Bank (First Commerce)",
       "street": "919 Galvin Rd S",
       "city": "Bellevue",
@@ -362,6 +383,7 @@
     },
     {
       "id": "cornhusker-auto-wash",
+      "secretCode": "secret_cornhusker-auto-wash",
       "name": "Cornhusker Auto Wash (Autumn Car Wash)",
       "street": "10205 S 25th St",
       "city": "Bellevue",
@@ -391,10 +413,12 @@
       "hours": {
         "Mon-Fri": "9:00 AM - 6:00 PM",
         "Sat": "10:00 AM - 2:00 PM"
-      }
+      },
+      "secretCode": "secret_ame-computers_dwic1j"
     },
     {
       "id": "centris-federal-credit-union",
+      "secretCode": "secret_centris-federal-credit-union",
       "name": "Centris Federal Credit Union (Commercial Federal)",
       "street": "2207 Pratt Ave",
       "city": "Bellevue",
@@ -412,6 +436,7 @@
     },
     {
       "id": "west-gate-bar-and-grill",
+      "secretCode": "secret_west-gate-bar-and-grill",
       "name": "West Gate Bar & Grill",
       "street": "4001 Twin Creek Dr",
       "city": "Bellevue",
@@ -428,6 +453,7 @@
     },
     {
       "id": "red-barn-farm",
+      "secretCode": "secret_red-barn-farm",
       "name": "Red Barn Farm",
       "street": "1720 Ave A",
       "city": "Omaha",
@@ -444,6 +470,7 @@
     },
     {
       "id": "wildcat-den",
+      "secretCode": "secret_wildcat-den",
       "name": "Wildcat Den",
       "street": "1000 N 14th St",
       "city": "Blair",
@@ -460,6 +487,7 @@
     },
     {
       "id": "blue-chip-realty",
+      "secretCode": "secret_blue-chip-realty",
       "name": "Blue Chip Realty",
       "street": "100 N 8th St",
       "city": "Lincoln",
@@ -476,6 +504,7 @@
     },
     {
       "id": "ima-crown-partners",
+      "secretCode": "secret_ima-crown-partners",
       "name": "IMA Crown Partners",
       "street": "1100 Main St",
       "city": "Kansas City",
@@ -492,6 +521,7 @@
     },
     {
       "id": "belleview-arms",
+      "secretCode": "secret_belleview-arms",
       "name": "Belleview Arms",
       "street": "505 W Mission Ave",
       "city": "Bellevue",
@@ -508,6 +538,7 @@
     },
     {
       "id": "belleview-poly",
+      "secretCode": "secret_belleview-poly",
       "name": "Belleview Poly",
       "street": "1000 Industrial Rd",
       "city": "Bellevue",
@@ -524,6 +555,7 @@
     },
     {
       "id": "westlawn-architects",
+      "secretCode": "secret_westlawn-architects",
       "name": "Westlawn Architects",
       "street": "1200 Howard St",
       "city": "Omaha",
@@ -540,6 +572,7 @@
     },
     {
       "id": "stellas-bar-and-grill",
+      "secretCode": "secret_stellas-bar-and-grill",
       "name": "Stella's Bar & Grill",
       "street": "106 W Main St",
       "city": "Bellevue",
@@ -556,6 +589,7 @@
     },
     {
       "id": "chase-west-gate-bank",
+      "secretCode": "secret_chase-west-gate-bank",
       "name": "Chase West Gate Bank",
       "street": "2000 Cornhusker Rd",
       "city": "Bellevue",
@@ -573,6 +607,7 @@
     },
     {
       "id": "gwens-jewelers",
+      "secretCode": "secret_gwens-jewelers",
       "name": "Gwen's Jewelers",
       "street": "120 N 10th St",
       "city": "Omaha",
@@ -590,6 +625,7 @@
     },
     {
       "id": "chicken-coop-solutions",
+      "secretCode": "secret_chicken-coop-solutions",
       "name": "Chicken Coop Solutions",
       "street": "300 E Broadway",
       "city": "Council Bluffs",
@@ -606,6 +642,7 @@
     },
     {
       "id": "bps-lids",
+      "secretCode": "secret_bps-lids",
       "name": "BPS Lids",
       "street": "200 S 24th St",
       "city": "Bellevue",
@@ -622,6 +659,7 @@
     },
     {
       "id": "fun-house-bellevue",
+      "secretCode": "secret_fun-house-bellevue",
       "name": "Fun House Bellevue",
       "street": "200 Fun House Ln",
       "city": "Bellevue",

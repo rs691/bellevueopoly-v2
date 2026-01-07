@@ -42,16 +42,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyCKu8i20jdoRSUZvCFUXt1mBUNxrc_T_uQ',
-    appId: '1:490494751564:web:8854cd0e7be5bcefd495e9',
+    appId: '1:490494751564:web:4a703b4fb83f5f1ad495e9',
     messagingSenderId: '490494751564',
     projectId: 'roberts-web-apps',
     authDomain: 'roberts-web-apps.firebaseapp.com',
     storageBucket: 'roberts-web-apps.firebasestorage.app',
+    measurementId: 'G-XV176WNLG0',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAM3-iyFcM06rNMVNwzLi228PYy3FvYiS4',
-    appId: '1:490494751564:android:1f506139b09cc729d495e9',
+    apiKey: 'AIzaSyDvfkFCLhzMkP_C6kQPWx56GeQep-robmQ',
+    appId: '1:490494751564:android:78b588b08319d801d495e9',
     messagingSenderId: '490494751564',
     projectId: 'roberts-web-apps',
     storageBucket: 'roberts-web-apps.firebasestorage.app',
@@ -82,5 +83,7 @@ class DefaultFirebaseOptions {
     projectId: 'roberts-web-apps',
     authDomain: 'roberts-web-apps.firebaseapp.com',
     storageBucket: 'roberts-web-apps.firebasestorage.app',
+    measurementId: 'G-XV176WNLG0',
   );
+
 }

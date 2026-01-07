@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart'; // For rootBundle
 import '../models/business_model.dart';
-import '../models/player.dart'; // Import Player model
+import '../models/player.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -17,18 +18,26 @@ class FirestoreService {
     required String username,
   }) async {
     try {
+      // Check if user is anonymous (developer bypass)
+      final isAnonymous = user.isAnonymous;
+      
       await _db.collection('users').doc(user.uid).set({
-        'id': user.uid, // Store ID in document
-        'name': username,
+        'username': username,
         'email': user.email,
         'createdAt': FieldValue.serverTimestamp(),
         'totalVisits': 0,
-        'balance': 0, // Initial points/balance
-        'ownedPropertyIds': [],
+        'total_points': 0,
+        'propertiesOwned': [],
         'trophies': [],
+        'isAdmin': isAnonymous, // Anonymous users get admin access
+        'isAnonymous': isAnonymous,
       });
+      
+      if (isAnonymous) {
+        debugPrint('✅ Anonymous user created with admin privileges');
+      }
     } catch (e) {
-      print('Error adding user to Firestore: $e');
+      debugPrint('Error adding user to Firestore: $e');
       rethrow;
     }
   }
@@ -43,7 +52,7 @@ class FirestoreService {
     try {
       return await _db.collection('users').doc(uid).get();
     } catch (e) {
-      print('Error getting user from Firestore: $e');
+      debugPrint('Error getting user from Firestore: $e');
       rethrow;
     }
   }
@@ -54,47 +63,9 @@ class FirestoreService {
         'totalVisits': FieldValue.increment(1),
       });
     } catch (e) {
-      print('Error incrementing user visits: $e');
+      debugPrint('Error incrementing user visits: $e');
       rethrow;
     }
-  }
-
-  // Add points to a user's balance
-  Future<void> addPoints(String uid, int points) async {
-    try {
-      await _db.collection('users').doc(uid).update({
-        'balance': FieldValue.increment(points),
-      });
-    } catch (e) {
-      print('Error adding points: $e');
-      // If document doesn't exist or field is missing, set it
-      // This is a fallback, but ideally user doc exists.
-    }
-  }
-
-  // Fetch Leaderboard (Top players by balance)
-  Stream<List<Player>> getLeaderboardStream({int limit = 10}) {
-    return _db.collection('users')
-        .orderBy('balance', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id; // Ensure ID is present
-        // Handle potential missing fields gracefully
-        return Player.fromJson({
-          ...data,
-          'name': data['name'] ?? 'Unknown Player',
-          'balance': data['balance'] ?? 0,
-          'ownedPropertyIds': data['ownedPropertyIds'] ?? [],
-          'totalVisits': data['totalVisits'] ?? 0,
-          'createdAt': data['createdAt'] is Timestamp 
-              ? (data['createdAt'] as Timestamp).toDate().toIso8601String() 
-              : DateTime.now().toIso8601String(),
-        });
-      }).toList();
-    });
   }
 
   // ==============================================================================
@@ -121,9 +92,9 @@ class FirestoreService {
       }
 
       await batch.commit();
-      print("✅ Successfully uploaded ${businesses.length} businesses to Firestore!");
+      debugPrint("✅ Successfully uploaded ${businesses.length} businesses to Firestore!");
     } catch (e) {
-      print("❌ Error seeding data: $e");
+      debugPrint("❌ Error seeding data: $e");
       rethrow;
     }
   }
@@ -132,25 +103,50 @@ class FirestoreService {
   // Used by the App to get businesses from Firestore instead of local JSON
   Stream<List<Business>> getBusinessesStream() {
     return _db.collection('businesses').snapshots().map((snapshot) {
+      debugPrint("📢 Firestore Business Stream Update: ${snapshot.docs.length} documents found.");
       return snapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id; // Ensure ID matches doc ID
-        return Business.fromJson(data);
+        try {
+          return Business.fromJson(data);
+        } catch (e) {
+          debugPrint("❌ Error parsing business ${doc.id}: $e");
+          rethrow;
+        }
       }).toList();
     });
   }
 
-  Future<Business?> getBusinessById(String id) async {
-    try {
-      final doc = await _db.collection('businesses').doc(id).get();
-      if (!doc.exists) return null;
-      final data = doc.data()!;
-      data['id'] = doc.id;
-      return Business.fromJson(data);
-    } catch (e) {
-      print("❌ Error fetching business $id: $e");
-      return null;
-    }
+  // Get Top Players for Leaderboard
+  Stream<List<Player>> getTopPlayersStream({int limit = 20}) {
+    return _db.collection('users')
+        .orderBy('total_points', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        // Handle potential parsing errors safely
+        try {
+          // If 'id' is missing in data, we added it. But Player.fromJson might expect other required fields.
+          // We need to ensure data has what Player needs, or construct it manually.
+          return Player.fromJson(data);
+        } catch (e) {
+          debugPrint("Error parsing player ${doc.id}: $e");
+          // Return a placeholder so the stream doesn't crash
+          return Player(
+            id: doc.id, 
+            name: data['username'] ?? 'Unknown', 
+            balance: 0, 
+            ownedPropertyIds: [], 
+            totalVisits: (data['totalVisits'] as int?) ?? 0,
+            totalPoints: (data['total_points'] as int?) ?? 0,
+            createdAt: DateTime.now()
+          );
+        }
+      }).toList();
+    });
   }
 
   // ==============================================================================
@@ -168,7 +164,7 @@ class FirestoreService {
         return data;
       }).toList();
     } catch (e) {
-      print("❌ Error fetching users: $e");
+      debugPrint("❌ Error fetching users: $e");
       rethrow;
     }
   }
@@ -184,76 +180,8 @@ class FirestoreService {
         return Business.fromJson(data);
       }).toList();
     } catch (e) {
-      print("❌ Error fetching businesses: $e");
+      debugPrint("❌ Error fetching businesses: $e");
       rethrow;
-    }
-  }
-
-  // ==============================================================================
-  // SECTION 5: CHECK-IN TRACKING (Loyalty Program)
-  // ==============================================================================
-
-  /// Record a visit/check-in to a business
-  Future<void> recordCheckIn(String userId, String businessId) async {
-    try {
-      final userRef = _db.collection('users').doc(userId);
-
-      // Increment total check-ins for this business
-      await userRef.collection('businessCheckIns').doc(businessId).set(
-        {
-          'count': FieldValue.increment(1),
-          'lastCheckIn': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
-
-      // Also update user's totalVisits
-      await userRef.update({
-        'totalVisits': FieldValue.increment(1),
-      });
-    } catch (e) {
-      print('Error recording check-in: $e');
-      rethrow;
-    }
-  }
-
-  /// Get the number of check-ins for a specific business
-  Future<int> getBusinessCheckIns(String userId, String businessId) async {
-    try {
-      final doc = await _db
-          .collection('users')
-          .doc(userId)
-          .collection('businessCheckIns')
-          .doc(businessId)
-          .get();
-
-      if (doc.exists) {
-        return doc.data()?['count'] as int? ?? 0;
-      }
-      return 0;
-    } catch (e) {
-      print('Error getting business check-ins: $e');
-      return 0;
-    }
-  }
-
-  /// Get all check-ins for a user across all businesses
-  Future<Map<String, int>> getAllBusinessCheckIns(String userId) async {
-    try {
-      final snapshot = await _db
-          .collection('users')
-          .doc(userId)
-          .collection('businessCheckIns')
-          .get();
-
-      final result = <String, int>{};
-      for (final doc in snapshot.docs) {
-        result[doc.id] = doc.data()['count'] as int? ?? 0;
-      }
-      return result;
-    } catch (e) {
-      print('Error getting all business check-ins: $e');
-      return {};
     }
   }
 }

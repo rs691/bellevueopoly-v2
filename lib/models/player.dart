@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
 class Player extends Equatable {
@@ -6,6 +7,7 @@ class Player extends Equatable {
   final int balance;
   final List<String> ownedPropertyIds;
   final int totalVisits;
+  final int totalPoints;  // Total points from all scans
   final DateTime createdAt;
 
   const Player({
@@ -14,6 +16,7 @@ class Player extends Equatable {
     required this.balance,
     required this.ownedPropertyIds,
     required this.totalVisits,
+    required this.totalPoints,
     required this.createdAt,
   });
 
@@ -23,6 +26,7 @@ class Player extends Equatable {
     int? balance,
     List<String>? ownedPropertyIds,
     int? totalVisits,
+    int? totalPoints,
     DateTime? createdAt,
   }) {
     return Player(
@@ -31,6 +35,7 @@ class Player extends Equatable {
       balance: balance ?? this.balance,
       ownedPropertyIds: ownedPropertyIds ?? this.ownedPropertyIds,
       totalVisits: totalVisits ?? this.totalVisits,
+      totalPoints: totalPoints ?? this.totalPoints,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -41,17 +46,23 @@ class Player extends Equatable {
     'balance': balance,
     'ownedPropertyIds': ownedPropertyIds,
     'totalVisits': totalVisits,
+    'total_points': totalPoints,
     'createdAt': createdAt.toIso8601String(),
   };
 
   factory Player.fromJson(Map<String, dynamic> json) {
     return Player(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      balance: json['balance'] as int,
-      ownedPropertyIds: List<String>.from(json['ownedPropertyIds'] as List),
-      totalVisits: json['totalVisits'] as int,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      id: json['id'] as String? ?? 'unknown',
+      name: json['name'] as String? ?? 'Unknown Player',
+      balance: json['balance'] is int ? json['balance'] : 0,
+      ownedPropertyIds: json['ownedPropertyIds'] is List
+          ? List<String>.from(json['ownedPropertyIds'])
+          : [],
+      totalVisits: json['totalVisits'] is int ? json['totalVisits'] : 0,
+      totalPoints: json['total_points'] is int ? json['total_points'] : 0,
+      createdAt: json['createdAt'] is String 
+          ? DateTime.tryParse(json['createdAt']) ?? DateTime.now() 
+          : (json['createdAt'] is Timestamp ? (json['createdAt'] as Timestamp).toDate() : DateTime.now()),
     );
   }
 
@@ -62,6 +73,7 @@ class Player extends Equatable {
     balance,
     ownedPropertyIds,
     totalVisits,
+    totalPoints,
     createdAt,
   ];
 }

@@ -1,16 +1,16 @@
-import 'package:flutter/foundation.dart'; // For kIsWeb check
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart'; // For navigation
-import 'dart:math' as math; // For random particle generation
-import 'package:firebase_auth/firebase_auth.dart'; // For Firebase Authentication
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // For state management (ConsumerStatefulWidget)
+import 'package:go_router/go_router.dart';
+import 'dart:math' as math;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/glassmorphic_card.dart';
 import '../widgets/gradient_background.dart';
 import '../widgets/responsive_form_container.dart';
+import '../services/firestore_service.dart';
+import '../services/auth_service.dart';
 
-/// The LoginScreen handles user authentication via Email/Password and Google Sign-In.
-/// It features an animated particle background and a glassmorphic UI design.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -20,25 +20,19 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen>
     with TickerProviderStateMixin {
-  // --- ANIMATION STATE ---
   late AnimationController _particleController;
   final List<_Particle> _particles = [];
-
-  // --- FORM STATE ---
-  final _formKey =
-      GlobalKey<FormState>(); // Key to validate and save form fields
+  final _formKey = GlobalKey<FormState>();
   String _email = '';
   String _password = '';
+  bool _isLoading = false;
 
-  // --- LOADING STATE ---
-  bool _isLoading = false; // For email/password loading state
-  bool _isGoogleLoading = false; // For Google Sign-In loading state
+  // Re-usable FirestoreService instance
+  final FirestoreService _firestoreService = FirestoreService();
 
   @override
   void initState() {
     super.initState();
-    // Initialize the background particle animation
-    // Duration controls the speed of the "breathing" or movement cycle
     _particleController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 10), // Slower, more ambient animation
@@ -46,7 +40,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     _initializeParticles();
   }
 
-  /// populates the `_particles` list with random properties for the background effect
   void _initializeParticles() {
     for (int i = 0; i < 15; i++) {
       _particles.add(
@@ -61,100 +54,152 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
-  /// Returns a random color from a predefined palette for the particles
   Color _getRandomColor() {
     final colors = [
-      Colors.pinkAccent.withOpacity(0.4),
-      Colors.purpleAccent.withOpacity(0.4),
-      Colors.orangeAccent.withOpacity(0.4),
+      Colors.pinkAccent.withValues(alpha: 0.4),
+      Colors.purpleAccent.withValues(alpha: 0.4),
+      Colors.orangeAccent.withValues(alpha: 0.4),
     ];
     return colors[math.Random().nextInt(colors.length)];
   }
 
   @override
   void dispose() {
-    _particleController
-        .dispose(); // Clean up controller to prevent memory leaks
+    _particleController.dispose();
     super.dispose();
   }
 
-  // --- ERROR HANDLING HELPER ---
-  /// Displays a floating SnackBar with error messages
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.redAccent,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  // --- EMAIL SIGN IN ---
-  /// Validates the form and attempts to sign in via Firebase Email/Password Auth
   void _trySubmit() async {
     final isValid = _formKey.currentState?.validate();
-    if (isValid != true) return; // Stop if form is invalid
-    _formKey.currentState?.save(); // Save form fields to variables
+    if (isValid != true) return;
+    _formKey.currentState?.save();
 
     setState(() => _isLoading = true);
 
     try {
-      // Attempt Firebase Login
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _email,
-        password: _password,
-      );
-      // On success, navigation is handled by the AppRouter via auth state changes,
-      // but we call context.go('/') here for explicit immediate feedback.
-      if (mounted) context.go('/');
+      final userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: _email, password: _password);
+
+      if (userCredential.user != null) {
+        // Check if email is verified
+        if (!userCredential.user!.emailVerified) {
+          if (mounted) {
+            _showError(
+              'Please verify your email before logging in.',
+              Icons.email_outlined,
+            );
+            // Optionally redirect to verification screen
+            await Future.delayed(const Duration(milliseconds: 500));
+            if (mounted) {
+              context.go('/email-verification', extra: _email);
+            }
+          }
+        } else {
+          if (mounted) context.go('/');
+        }
+      }
     } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Login failed.');
+      final authService = ref.read(authServiceProvider);
+      if (e.code == 'network-request-failed') {
+        _showError(
+          'Network error. Please check your internet connection.',
+          Icons.wifi_off,
+          showRetry: true,
+        );
+      } else {
+        _showError(authService.getErrorMessage(e), Icons.error_outline);
+      }
     } catch (e) {
-      _showError('An unexpected error occurred.');
+      _showError(
+        'An unexpected error occurred. Please try again.',
+        Icons.error_outline,
+        showRetry: true,
+      );
     }
 
     if (mounted) setState(() => _isLoading = false);
   }
 
-  /// Handles the Google Sign-In flow, using signInWithPopup for Web and
-  /// Firebase Auth provider-based sign-in for Mobile/Desktop.
-  Future<void> _signInWithGoogle() async {
-    if (_isLoading || _isGoogleLoading) return;
-    setState(() => _isGoogleLoading = true);
+  Future<void> _signInAnonymously() async {
+    setState(() => _isLoading = true);
 
     try {
-      final googleProvider = GoogleAuthProvider();
-      UserCredential userCredential;
+      // Use the newly added method in AuthService (or direct auth for now if not available via provider here)
+      // Since we are inside a widget, we can use FirebaseAuth directly or Ref if we convert to ConsumerWidget fully
+      // But let's stick to the pattern used in _signInWithGoogle which uses FirebaseAuth.instance directly
+      // EXCEPT I just added it to AuthService, so let's try to use that if possible, OR just duplicate the logic
+      // to match the existing style of this file which overrides the service pattern a bit.
+      // To be safe and consistent with _signInWithGoogle in this file:
+      final userCredential = await FirebaseAuth.instance.signInAnonymously();
+      final user = userCredential.user;
 
-      if (kIsWeb) {
-        // Web: popup flow
-        userCredential = await FirebaseAuth.instance.signInWithPopup(
-          googleProvider,
-        );
-      } else {
-        // Mobile/Desktop: provider-based flow (no google_sign_in package needed)
-        userCredential = await FirebaseAuth.instance.signInWithProvider(
-          googleProvider,
-        );
+      if (user != null) {
+        // Always ensure anonymous users have admin privileges
+        if (userCredential.additionalUserInfo?.isNewUser == true) {
+          // Create new user document
+          await _firestoreService.addUser(
+            user: user,
+            username: 'Guest Player', // Default name for anonymous
+          );
+        } else {
+          // Update existing anonymous user to ensure admin privileges
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set(
+                {'isAdmin': true, 'isAnonymous': true},
+                SetOptions(merge: true),
+              ); // Merge to avoid overwriting other fields
+        }
       }
 
-      if (userCredential.user != null) {
-        if (mounted) context.go('/');
-      } else {
-        throw Exception('Google Sign-In failed to return a user.');
-      }
+      if (mounted) context.go('/');
     } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Google Sign-In failed via Firebase.');
+      final authService = ref.read(authServiceProvider);
+      if (e.code == 'network-request-failed') {
+        _showError(
+          'Network error. Cannot connect in guest mode.',
+          Icons.wifi_off,
+          showRetry: true,
+        );
+      } else {
+        _showError(authService.getErrorMessage(e), Icons.error_outline);
+      }
     } catch (e) {
-      debugPrint("Error signing in with Google: $e");
-      _showError('Failed to sign in with Google. Please try again.');
-    } finally {
-      if (mounted) setState(() => _isGoogleLoading = false);
+      _showError(
+        'An unexpected error occurred during bypass.',
+        Icons.error_outline,
+      );
+    }
+
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  // Helper to reduce code duplication for showing errors
+  void _showError(String message, IconData icon, {bool showRetry = false}) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(icon, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: Duration(seconds: showRetry ? 4 : 3),
+          action: showRetry
+              ? SnackBarAction(
+                  label: 'Retry',
+                  textColor: Colors.white,
+                  onPressed: _trySubmit,
+                )
+              : null,
+        ),
+      );
     }
   }
-  // ...existing code...
 
   @override
   Widget build(BuildContext context) {
@@ -163,10 +208,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            // 1. Background Animation Layer
             ..._buildParticles(),
-
-            // 2. Foreground Content Layer
             SafeArea(
               child: ResponsiveFormContainer(
                 child: SingleChildScrollView(
@@ -174,7 +216,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // --- HEADER TEXT ---
                       const Text(
                         'Welcome Back',
                         style: TextStyle(
@@ -189,8 +230,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
                       const SizedBox(height: 40),
-
-                      // --- LOGIN FORM CARD ---
                       GlassmorphicCard(
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
@@ -199,7 +238,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Email Field
                                 TextFormField(
                                   decoration: const InputDecoration(
                                     labelText: 'Email',
@@ -213,8 +251,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   onSaved: (value) => _email = value ?? '',
                                 ),
                                 const SizedBox(height: 16),
-
-                                // Password Field
                                 TextFormField(
                                   decoration: const InputDecoration(
                                     labelText: 'Password',
@@ -227,16 +263,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                       : null,
                                   onSaved: (value) => _password = value ?? '',
                                 ),
+                                const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: GestureDetector(
+                                    onTap: () => context.go('/password-reset'),
+                                    child: const Text(
+                                      'Forgot password?',
+                                      style: TextStyle(
+                                        color: Colors.purple,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                                 const SizedBox(height: 32),
-
-                                // Login Button
                                 SizedBox(
                                   width: double.infinity,
                                   height: 50,
                                   child: ElevatedButton(
-                                    onPressed: _isLoading || _isGoogleLoading
-                                        ? null
-                                        : _trySubmit,
+                                    onPressed: _isLoading ? null : _trySubmit,
                                     child: _isLoading
                                         ? const CircularProgressIndicator(
                                             color: Colors.white,
@@ -244,60 +292,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                         : const Text('Login'),
                                   ),
                                 ),
-
                                 const SizedBox(height: 20),
-                                const _OrDivider(),
-                                const SizedBox(height: 20),
-
-                                // Google Sign-In Button
                                 SizedBox(
                                   width: double.infinity,
                                   height: 50,
-                                  child: _isGoogleLoading
-                                      ? const Center(
-                                          child: CircularProgressIndicator(),
-                                        )
-                                      : OutlinedButton.icon(
-                                          icon: Image.asset(
-                                            'assets/images/google_logo.png',
-                                            height: 24.0,
-                                            // Fallback icon if image is missing
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    const Icon(
-                                                      Icons.g_mobiledata,
-                                                      color: Colors.white,
-                                                      size: 24,
-                                                    ),
-                                          ),
-                                          label: const Text(
-                                            'Sign in with Google',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          style: OutlinedButton.styleFrom(
-                                            side: BorderSide(
-                                              color: Colors.white.withOpacity(
-                                                0.5,
-                                              ),
-                                            ),
-                                          ),
-                                          onPressed:
-                                              _isLoading || _isGoogleLoading
-                                              ? null
-                                              : _signInWithGoogle,
-                                        ),
+                                  child: TextButton(
+                                    onPressed: _isLoading
+                                        ? null
+                                        : _signInAnonymously,
+                                    child: const Text(
+                                      'Developer Bypass (Guest)',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
-                      // --- FOOTER LINKS ---
                       TextButton(
                         onPressed: () => context.go('/register'),
                         child: const Text(
@@ -316,21 +333,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  /// Builds the list of animated particle widgets based on the `_particles` data
   List<Widget> _buildParticles() {
+    // Extracted for cleanliness
     return _particles.map((particle) {
       return AnimatedBuilder(
         animation: _particleController,
         builder: (context, child) {
-          // Use MediaQuery with a fallback for safety to determine screen bounds
-          final size =
-              MediaQuery.maybeOf(context)?.size ?? const Size(400, 800);
+          final screenHeight = MediaQuery.of(context).size.height;
           final animValue =
               (_particleController.value * particle.speed + particle.offsetY) %
               1.0;
           return Positioned(
-            left: size.width * particle.offsetX,
-            top: size.height * animValue - particle.size,
+            left: MediaQuery.of(context).size.width * particle.offsetX,
+            top: screenHeight * animValue - particle.size,
             child: Opacity(
               opacity: (math.sin(animValue * math.pi) * 0.6).clamp(0.0, 0.6),
               child: Container(
@@ -341,7 +356,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: particle.color.withOpacity(0.5),
+                      color: particle.color.withValues(alpha: 0.5),
                       blurRadius: 10,
                     ),
                   ],
@@ -355,7 +370,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 }
 
-/// Helper class to store properties for each background particle
 class _Particle {
   final Color color;
   final double size;
@@ -370,26 +384,4 @@ class _Particle {
     required this.offsetY,
     required this.speed,
   });
-}
-
-/// A simple widget to render "------ OR ------" text with lines
-class _OrDivider extends StatelessWidget {
-  const _OrDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Expanded(child: Divider(color: Colors.white30)),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text(
-            'OR',
-            style: TextStyle(color: Colors.white.withOpacity(0.7)),
-          ),
-        ),
-        const Expanded(child: Divider(color: Colors.white30)),
-      ],
-    );
-  }
 }
