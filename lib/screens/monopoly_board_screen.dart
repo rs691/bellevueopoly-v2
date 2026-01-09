@@ -277,7 +277,7 @@ class _MonopolyBoardScreenState extends ConsumerState<MonopolyBoardScreen> {
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       Text(
-                        business.category ?? 'Local Business',
+                        business.category,
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall?.copyWith(color: Colors.grey),

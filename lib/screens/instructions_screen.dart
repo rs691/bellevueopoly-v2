@@ -93,7 +93,7 @@ class InstructionsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text('Welcome to Bellevueopoly',
+                  Text('Welcome to Chamber Opoly',
                       style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   SizedBox(height: 6),
                   Text(

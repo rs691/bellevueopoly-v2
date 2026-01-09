@@ -1,12 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:video_player/video_player.dart';
 import '../widgets/glassmorphic_card.dart';
-import '../widgets/gradient_background.dart';
+
 import '../widgets/responsive_form_container.dart';
 import '../services/firestore_service.dart';
 import '../services/auth_service.dart';
@@ -19,9 +19,14 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _particleController;
-  final List<_Particle> _particles = [];
+    with SingleTickerProviderStateMixin {
+  late final VideoPlayerController _controller;
+  late final AnimationController _formAnimationController;
+  late final Animation<Offset> _slideAnimation;
+  late final Animation<double> _fadeAnimation;
+  bool _isVideoInitialized = false;
+  String? _error;
+  bool _showForm = true;
   final _formKey = GlobalKey<FormState>();
   String _email = '';
   String _password = '';
@@ -33,39 +38,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   @override
   void initState() {
     super.initState();
-    _particleController = AnimationController(
+    _initializeVideo();
+    _formAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10), // Slower, more ambient animation
-    )..repeat();
-    _initializeParticles();
+      duration: const Duration(milliseconds: 600),
+    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _formAnimationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _formAnimationController, curve: Curves.easeIn),
+    );
+    // Show form immediately
+    _formAnimationController.forward();
   }
 
-  void _initializeParticles() {
-    for (int i = 0; i < 15; i++) {
-      _particles.add(
-        _Particle(
-          color: _getRandomColor(),
-          size: math.Random().nextDouble() * 20 + 10,
-          offsetX: math.Random().nextDouble(),
-          offsetY: math.Random().nextDouble(),
-          speed: math.Random().nextDouble() * 0.1 + 0.05, // Slower speed
-        ),
-      );
+  Future<void> _initializeVideo() async {
+    try {
+      _controller = VideoPlayerController.asset('assets/background.mp4');
+      await _controller.initialize();
+      await _controller.setLooping(true);
+      await _controller.setVolume(0);
+      await _controller.play();
+      if (mounted) {
+        setState(() => _isVideoInitialized = true);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
     }
-  }
-
-  Color _getRandomColor() {
-    final colors = [
-      Colors.pinkAccent.withValues(alpha: 0.4),
-      Colors.purpleAccent.withValues(alpha: 0.4),
-      Colors.orangeAccent.withValues(alpha: 0.4),
-    ];
-    return colors[math.Random().nextInt(colors.length)];
   }
 
   @override
   void dispose() {
-    _particleController.dispose();
+    _controller.dispose();
+    _formAnimationController.dispose();
     super.dispose();
   }
 
@@ -182,7 +192,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         SnackBar(
           content: Row(
             children: [
-              Icon(icon, color: Colors.white),
+              Icon(icon, color: Colors.black),
               const SizedBox(width: 12),
               Expanded(child: Text(message)),
             ],
@@ -203,13 +213,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
-    return GradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            ..._buildParticles(),
-            SafeArea(
+    final purple = const Color(0xFF7C3AED);
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (_isVideoInitialized)
+            FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: _controller.value.size.width,
+                height: _controller.value.size.height,
+                child: VideoPlayer(_controller),
+              ),
+            )
+          else
+            const SizedBox.shrink(),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.black.withOpacity(0.7),
+                  Colors.black.withOpacity(0.35),
+                ],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Center(
               child: ResponsiveFormContainer(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -224,164 +258,222 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Log in to continue your adventure',
-                        style: TextStyle(color: Colors.white70, fontSize: 16),
-                      ),
-                      const SizedBox(height: 40),
-                      GlassmorphicCard(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Email',
-                                    prefixIcon: Icon(Icons.email_outlined),
-                                  ),
-                                  keyboardType: TextInputType.emailAddress,
-                                  validator: (value) =>
-                                      (value == null || !value.contains('@'))
-                                      ? 'Please enter a valid email.'
-                                      : null,
-                                  onSaved: (value) => _email = value ?? '',
-                                ),
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Password',
-                                    prefixIcon: Icon(Icons.lock_outline),
-                                  ),
-                                  obscureText: true,
-                                  validator: (value) =>
-                                      (value == null || value.length < 6)
-                                      ? 'Password must be at least 6 characters long.'
-                                      : null,
-                                  onSaved: (value) => _password = value ?? '',
-                                ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: GestureDetector(
-                                    onTap: () => context.go('/password-reset'),
-                                    child: const Text(
-                                      'Forgot password?',
-                                      style: TextStyle(
-                                        color: Colors.purple,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        decoration: TextDecoration.underline,
+                      const SizedBox(height: 48),
+
+                      // Animated form appears first
+                      if (_showForm)
+                        FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: SlideTransition(
+                            position: _slideAnimation,
+                            child: _WhiteFormCard(
+                              child: Theme(
+                                data: Theme.of(context).copyWith(
+                                  inputDecorationTheme: InputDecorationTheme(
+                                    labelStyle: TextStyle(
+                                      color: purple,
+                                      letterSpacing: 0.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: purple,
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: purple,
+                                        width: 2,
                                       ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 32),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: _isLoading ? null : _trySubmit,
-                                    child: _isLoading
-                                        ? const CircularProgressIndicator(
-                                            color: Colors.white,
-                                          )
-                                        : const Text('Login'),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: TextButton(
-                                    onPressed: _isLoading
-                                        ? null
-                                        : _signInAnonymously,
-                                    child: const Text(
-                                      'Developer Bypass (Guest)',
-                                      style: TextStyle(
-                                        color: Colors.white70,
-                                        decoration: TextDecoration.underline,
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextFormField(
+                                        decoration: const InputDecoration(
+                                          labelText: 'EMAIL ADDRESS',
+                                        ),
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        validator: (value) =>
+                                            (value == null ||
+                                                !value.contains('@'))
+                                            ? 'Please enter a valid email.'
+                                            : null,
+                                        onSaved: (value) =>
+                                            _email = value ?? '',
                                       ),
-                                    ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        decoration: const InputDecoration(
+                                          labelText: 'PASSWORD',
+                                        ),
+                                        obscureText: true,
+                                        validator: (value) =>
+                                            (value == null || value.length < 6)
+                                            ? 'Password must be at least 6 characters long.'
+                                            : null,
+                                        onSaved: (value) =>
+                                            _password = value ?? '',
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: GestureDetector(
+                                          onTap: () =>
+                                              context.go('/password-reset'),
+                                          child: Text(
+                                            'Forgot password?'.toUpperCase(),
+                                            style: TextStyle(
+                                              color: purple,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        height: 50,
+                                        child: TextButton(
+                                          onPressed: _isLoading
+                                              ? null
+                                              : _signInAnonymously,
+                                          child: const Text(
+                                            'Developer Bypass (Guest)',
+                                            style: TextStyle(
+                                              color: Colors.black54,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      TextButton(
-                        onPressed: () => context.go('/register'),
-                        child: const Text(
-                          "Don't have an account? Sign up",
-                          style: TextStyle(color: Colors.white70),
+
+                      if (_showForm) const SizedBox(height: 24),
+
+                      // PLAY NOW button
+                      AnimatedGlassmorphicCard(
+                        onTap: _isLoading ? null : _trySubmit,
+                        padding: EdgeInsets.zero,
+                        child: SizedBox(
+                          width: 320,
+                          height: 90,
+                          child: Center(
+                            child: _isLoading
+                                ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'LOADING...',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const Text(
+                                    'PLAY NOW',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                          ),
                         ),
                       ),
+
+                      const SizedBox(height: 16),
+
+                      if (_showForm)
+                        TextButton(
+                          onPressed: () => context.go('/register'),
+                          child: const Text(
+                            "Don't have an account? Sign up",
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
                     ],
                   ),
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildParticles() {
-    // Extracted for cleanliness
-    return _particles.map((particle) {
-      return AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          final screenHeight = MediaQuery.of(context).size.height;
-          final animValue =
-              (_particleController.value * particle.speed + particle.offsetY) %
-              1.0;
-          return Positioned(
-            left: MediaQuery.of(context).size.width * particle.offsetX,
-            top: screenHeight * animValue - particle.size,
-            child: Opacity(
-              opacity: (math.sin(animValue * math.pi) * 0.6).clamp(0.0, 0.6),
-              child: Container(
-                width: particle.size,
-                height: particle.size,
-                decoration: BoxDecoration(
-                  color: particle.color,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: particle.color.withValues(alpha: 0.5),
-                      blurRadius: 10,
-                    ),
-                  ],
+          ),
+          if (!_isVideoInitialized)
+            const Center(child: CircularProgressIndicator(color: Colors.white)),
+          if (_error != null)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  'Video error: ' + _error!,
+                  style: const TextStyle(color: Colors.redAccent),
                 ),
               ),
             ),
-          );
-        },
-      );
-    }).toList();
+        ],
+      ),
+    );
   }
 }
 
-class _Particle {
-  final Color color;
-  final double size;
-  final double offsetX;
-  final double offsetY;
-  final double speed;
+class _WhiteFormCard extends StatelessWidget {
+  final Widget child;
+  const _WhiteFormCard({required this.child});
 
-  _Particle({
-    required this.color,
-    required this.size,
-    required this.offsetX,
-    required this.offsetY,
-    required this.speed,
-  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 420,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x804C1D95), // purple glow
+            blurRadius: 24,
+            offset: Offset(0, 12),
+          ),
+          BoxShadow(
+            color: Color(0x334C1D95),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }

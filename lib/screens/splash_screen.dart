@@ -13,41 +13,25 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Restore the timer to navigate to Landing after 3 seconds
-    Timer(
-      const Duration(seconds: 3),
-      () {
-        if (mounted) {
-          context.go('/landing');
-        }
-      },
-    );
+    Timer(const Duration(seconds: 3), () => context.go('/landing'));
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF1a0d33),
+    return Scaffold(
+      backgroundColor: Colors.black,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.location_city, 
-              size: 100,
-              color: Colors.white,
-            ),
-            SizedBox(height: 20),
-            Text(
-              'BELLEVUEOPOLY',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
-              ),
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Show the splash image and scale it sensibly on all screens.
+            final maxWidth = constraints.maxWidth;
+            final targetWidth = maxWidth > 500 ? 400.0 : maxWidth * 0.7;
+            return Image.asset(
+              'assets/splash.png',
+              width: targetWidth,
+              fit: BoxFit.contain,
+            );
+          },
         ),
       ),
     );

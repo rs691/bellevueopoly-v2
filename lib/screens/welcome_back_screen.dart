@@ -79,7 +79,7 @@ class WelcomeBackScreen extends StatelessWidget {
         hintText: hint,
         hintStyle: const TextStyle(color: Colors.white54),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
+        fillColor: Colors.white.withValues(alpha: 0.1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -88,3 +88,4 @@ class WelcomeBackScreen extends StatelessWidget {
     );
   }
 }
+

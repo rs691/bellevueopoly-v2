@@ -36,6 +36,13 @@ import '../screens/stop_hub_screen.dart';
 import '../screens/game_hub_screen.dart';
 import '../screens/game_settings_screen.dart';
 import '../screens/achievements_screen.dart';
+import '../screens/stop_hub_categories/boulevard_partners_screen.dart';
+import '../screens/stop_hub_categories/patriotic_partners_screen.dart';
+import '../screens/stop_hub_categories/merch_partners_screen.dart';
+import '../screens/stop_hub_categories/giving_partners_screen.dart';
+import '../screens/stop_hub_categories/community_chest_screen.dart';
+import '../screens/stop_hub_categories/wild_cards_screen.dart';
+import '../screens/stop_hub_categories/fun_house_screen.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -68,6 +75,14 @@ class AppRoutes {
   static const String prizes = '/prizes';
   static const String terms = '/terms';
   static const String qrScanHistory = '/qr-scan-history';
+  // Stop Hub Categories
+  static const String boulevardPartners = '/stop-hub/boulevard-partners';
+  static const String patrioticPartners = '/stop-hub/patriotic-partners';
+  static const String merchPartners = '/stop-hub/merch-partners';
+  static const String givingPartners = '/stop-hub/giving-partners';
+  static const String communityChest = '/stop-hub/community-chest';
+  static const String wildCards = '/stop-hub/wild-cards';
+  static const String funHouse = '/stop-hub/fun-house';
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -93,7 +108,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   };
 
   return GoRouter(
-    initialLocation: AppRoutes.splash,
+    initialLocation: AppRoutes.landing,
     navigatorKey: _rootNavigatorKey,
     routes: [
       // ROOT-LEVEL MODAL BUSINESS DETAIL ROUTE
@@ -187,7 +202,55 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.stopHub,
             builder: (context, state) => const StopHubScreen(),
             routes: [
-              // No nested business route here; use root-level modal route instead
+              GoRoute(
+                path: 'boulevard-partners',
+                pageBuilder: (context, state) => ZoomTransitionPage(
+                  key: state.pageKey,
+                  child: const BoulevardPartnersScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'patriotic-partners',
+                pageBuilder: (context, state) => ZoomTransitionPage(
+                  key: state.pageKey,
+                  child: const PatrioticPartnersScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'merch-partners',
+                pageBuilder: (context, state) => ZoomTransitionPage(
+                  key: state.pageKey,
+                  child: const MerchPartnersScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'giving-partners',
+                pageBuilder: (context, state) => ZoomTransitionPage(
+                  key: state.pageKey,
+                  child: const GivingPartnersScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'community-chest',
+                pageBuilder: (context, state) => ZoomTransitionPage(
+                  key: state.pageKey,
+                  child: const CommunityChestScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'wild-cards',
+                pageBuilder: (context, state) => ZoomTransitionPage(
+                  key: state.pageKey,
+                  child: const WildCardsScreen(),
+                ),
+              ),
+              GoRoute(
+                path: 'fun-house',
+                pageBuilder: (context, state) => ZoomTransitionPage(
+                  key: state.pageKey,
+                  child: const FunHouseScreen(),
+                ),
+              ),
             ],
           ),
 
@@ -308,3 +371,29 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
   );
 });
+
+// Custom Transition Page for Zoom/Fade Effect
+class ZoomTransitionPage<T> extends CustomTransitionPage<T> {
+  ZoomTransitionPage({
+    required Widget child,
+    required LocalKey key,
+  }) : super(
+          key: key,
+          child: child,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: ScaleTransition(
+                scale: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeOutQuart,
+                  reverseCurve: Curves.easeInQuart,
+                ),
+                child: child,
+              ),
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 500),
+        );
+}
+

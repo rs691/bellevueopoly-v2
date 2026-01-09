@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmf;
 import '../models/business_model.dart';
 import '../providers/config_provider.dart'; // FIX: Use correct provider import
+import '../widgets/chamber_opoly_wordmark.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -54,7 +55,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent, // Allows map to show behind
       appBar: AppBar(
-        title: const Text('BELLEVUEOPOLY'),
+        title: const SizedBox(
+          height: 44,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: ChamberOpolyWordmark(width: 170, showBanner: false),
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [

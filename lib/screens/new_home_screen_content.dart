@@ -4,23 +4,23 @@ import 'package:go_router/go_router.dart'; // Import go_router
 import 'package:myapp/providers/auth_provider.dart'; // Import authStateProvider
 import 'package:myapp/widgets/navigation_box.dart'; // Import NavigationBox
 
-class NewHomeScreenContent extends ConsumerWidget { // Changed to ConsumerWidget
+class NewHomeScreenContent extends ConsumerWidget {
+  // Changed to ConsumerWidget
   const NewHomeScreenContent({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) { // Added WidgetRef ref
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Added WidgetRef ref
     final authState = ref.watch(authStateProvider);
     final String? username = authState.when(
-      data: (user) => user?.displayName ?? user?.email?.split('@').first ?? 'Guest',
+      data: (user) =>
+          user?.displayName ?? user?.email?.split('@').first ?? 'Guest',
       loading: () => 'Loading...',
       error: (err, stack) => 'Error',
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Home'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -28,9 +28,9 @@ class NewHomeScreenContent extends ConsumerWidget { // Changed to ConsumerWidget
           children: [
             Text(
               'Welcome Back, ${username ?? 'User'}!',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
             Expanded(

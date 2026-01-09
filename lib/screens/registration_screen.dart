@@ -1,13 +1,15 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:video_player/video_player.dart';
 
-import '../widgets/glassmorphic_card.dart';
 import '../providers/firestore_provider.dart';
-import '../widgets/gradient_background.dart';
 import '../widgets/responsive_form_container.dart';
+import '../widgets/glassmorphic_card.dart';
+import '../widgets/chamber_opoly_wordmark.dart';
+import '../services/auth_service.dart';
 
 class RegistrationScreen extends ConsumerStatefulWidget {
   const RegistrationScreen({super.key});
@@ -17,55 +19,58 @@ class RegistrationScreen extends ConsumerStatefulWidget {
 }
 
 class _RegistrationScreenState extends ConsumerState<RegistrationScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _particleController;
-  final List<_Particle> _particles = [];
+    with SingleTickerProviderStateMixin {
+  late final VideoPlayerController _controller;
+  bool _isVideoInitialized = false;
+  String? _error;
   final _formKey = GlobalKey<FormState>();
   String _email = '';
   String _password = '';
   String _username = '';
   bool _isLoading = false;
+  bool _showForm = false;
+
+  late AnimationController _formAnimationController;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
-
-    // Particle animation controller
-    _particleController = AnimationController(
+    _initializeVideo();
+    _formAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat();
-
-    // Initialize particles
-    _initializeParticles();
+      duration: const Duration(milliseconds: 600),
+    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _formAnimationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _formAnimationController, curve: Curves.easeOut),
+    );
   }
 
-  void _initializeParticles() {
-    for (int i = 0; i < 15; i++) {
-      _particles.add(
-        _Particle(
-          color: _getRandomColor(),
-          size: math.Random().nextDouble() * 20 + 10,
-          offsetX: math.Random().nextDouble(),
-          offsetY: math.Random().nextDouble(),
-          speed: math.Random().nextDouble() * 0.5 + 0.3,
-        ),
-      );
+  Future<void> _initializeVideo() async {
+    try {
+      _controller = VideoPlayerController.asset('assets/background.mp4');
+      await _controller.initialize();
+      await _controller.setLooping(true);
+      await _controller.setVolume(0);
+      await _controller.play();
+      if (mounted) setState(() => _isVideoInitialized = true);
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString());
     }
-  }
-
-  Color _getRandomColor() {
-    final colors = [
-      Colors.pinkAccent.withOpacity(0.4),
-      Colors.purpleAccent.withOpacity(0.4),
-      Colors.orangeAccent.withOpacity(0.4),
-    ];
-    return colors[math.Random().nextInt(colors.length)];
   }
 
   @override
   void dispose() {
-    _particleController.dispose();
+    _controller.dispose();
+    _formAnimationController.dispose();
     super.dispose();
   }
 
@@ -81,29 +86,84 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen>
     });
 
     try {
-      final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _email,
-        password: _password,
-      );
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: _email, password: _password);
 
       if (userCredential.user != null) {
-        await ref.read(firestoreServiceProvider).addUser(
-          user: userCredential.user!,
-          username: _username,
-        );
+        // Add user to Firestore
+        await ref
+            .read(firestoreServiceProvider)
+            .addUser(user: userCredential.user!, username: _username);
+
+        // Send email verification
+        await userCredential.user!.sendEmailVerification();
 
         if (mounted) {
-          context.go('/');
+          // Navigate to email verification screen
+          context.go('/email-verification', extra: _email);
         }
       }
     } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? 'Registration failed.')),
-      );
+      if (mounted) {
+        final authService = ref.read(authServiceProvider);
+        IconData icon = Icons.error_outline;
+        String message;
+        bool showRetry = false;
+
+        if (e.code == 'network-request-failed') {
+          icon = Icons.wifi_off;
+          message = 'Network error. Please check your internet connection.';
+          showRetry = true;
+        } else {
+          message = authService.getErrorMessage(e);
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(icon, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(child: Text(message)),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: showRetry ? 4 : 3),
+            action: showRetry
+                ? SnackBarAction(
+                    label: 'Retry',
+                    textColor: Colors.white,
+                    onPressed: _trySubmit,
+                  )
+                : null,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('An unexpected error occurred.')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'An unexpected error occurred. Please try again.',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: _trySubmit,
+            ),
+          ),
+        );
+      }
     }
 
     if (mounted) {
@@ -115,186 +175,255 @@ class _RegistrationScreenState extends ConsumerState<RegistrationScreen>
 
   @override
   Widget build(BuildContext context) {
-    return GradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            // Animated background particles
-            ..._buildParticles(),
-
-            // Main content
-            SafeArea(
+    final purple = const Color(0xFF7C3AED);
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (_isVideoInitialized)
+            FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: _controller.value.size.width,
+                height: _controller.value.size.height,
+                child: VideoPlayer(_controller),
+              ),
+            ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.black.withOpacity(0.7),
+                  Colors.black.withOpacity(0.35),
+                ],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
+            ),
+          ),
+          SafeArea(
+            child: Center(
               child: ResponsiveFormContainer(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Title
-                      const Text(
-                        'Create Account',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Join the adventure!',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 40),
+                      const ChamberOpolyWordmark(width: 260, hero: true),
+                      const SizedBox(height: 48),
 
-                      // Registration Form
-                      GlassmorphicCard(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Username',
-                                    prefixIcon: Icon(Icons.person_outline),
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Please enter a username.';
-                                    }
-                                    return null;
-                                  },
-                                  onSaved: (value) {
-                                    _username = value ?? '';
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Email',
-                                    prefixIcon: Icon(Icons.email_outlined),
-                                  ),
-                                  keyboardType: TextInputType.emailAddress,
-                                  validator: (value) {
-                                    if (value == null || !value.contains('@')) {
-                                      return 'Please enter a valid email.';
-                                    }
-                                    return null;
-                                  },
-                                  onSaved: (value) {
-                                    _email = value ?? '';
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: 'Password',
-                                    prefixIcon: Icon(Icons.lock_outline),
-                                  ),
-                                  obscureText: true,
-                                  validator: (value) {
-                                    if (value == null || value.length < 6) {
-                                      return 'Password must be at least 6 characters long.';
-                                    }
-                                    return null;
-                                  },
-                                  onSaved: (value) {
-                                    _password = value ?? '';
-                                  },
-                                ),
-                                const SizedBox(height: 32),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: _isLoading ? null : _trySubmit,
-                                    child: _isLoading
-                                        ? const CircularProgressIndicator()
-                                        : const Text('Create Account'),
+                      // Animated form appears first
+                      if (_showForm)
+                        FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: SlideTransition(
+                            position: _slideAnimation,
+                            child: _WhiteFormCard(
+                              child: Theme(
+                                data: Theme.of(context).copyWith(
+                                  inputDecorationTheme: InputDecorationTheme(
+                                    labelStyle: TextStyle(
+                                      color: purple,
+                                      letterSpacing: 0.5,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    enabledBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: purple,
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    focusedBorder: UnderlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: purple,
+                                        width: 2,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ],
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextFormField(
+                                        decoration: const InputDecoration(
+                                          labelText: 'USERNAME',
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter a username.';
+                                          }
+                                          return null;
+                                        },
+                                        onSaved: (value) {
+                                          _username = value ?? '';
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        decoration: const InputDecoration(
+                                          labelText: 'EMAIL ADDRESS',
+                                        ),
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              !value.contains('@')) {
+                                            return 'Please enter a valid email.';
+                                          }
+                                          return null;
+                                        },
+                                        onSaved: (value) {
+                                          _email = value ?? '';
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        decoration: const InputDecoration(
+                                          labelText: 'PASSWORD',
+                                        ),
+                                        obscureText: true,
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.length < 6) {
+                                            return 'Password must be at least 6 characters long.';
+                                          }
+                                          return null;
+                                        },
+                                        onSaved: (value) {
+                                          _password = value ?? '';
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
+                          ),
+                        ),
+
+                      if (_showForm) const SizedBox(height: 24),
+
+                      // PLAY NOW button
+                      AnimatedGlassmorphicCard(
+                        onTap: _isLoading
+                            ? null
+                            : () {
+                                if (!_showForm) {
+                                  setState(() => _showForm = true);
+                                  _formAnimationController.forward();
+                                } else {
+                                  _trySubmit();
+                                }
+                              },
+                        padding: EdgeInsets.zero,
+                        child: SizedBox(
+                          width: 320,
+                          height: 90,
+                          child: Center(
+                            child: _isLoading
+                                ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'LOADING...',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const Text(
+                                    'PLAY NOW',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
-                      // Link to login
-                      TextButton(
-                        onPressed: () => context.go('/login'),
-                        child: const Text(
-                          "Already have an account? Log in",
-                          style: TextStyle(color: Colors.white70),
+                      if (_showForm)
+                        TextButton(
+                          onPressed: () => context.go('/login'),
+                          child: const Text(
+                            "Already have an account? Log in",
+                            style: TextStyle(color: Colors.white70),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<Widget> _buildParticles() {
-    return List.generate(15, (index) {
-      final particle = _particles[index];
-      return AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          final screenHeight = MediaQuery.of(context).size.height;
-          final animValue =
-              (_particleController.value + particle.offsetY) % 1.0;
-
-          return Positioned(
-            left: MediaQuery.of(context).size.width * particle.offsetX,
-            top: screenHeight * animValue - particle.size,
-            child: Opacity(
-              opacity: (math.sin(animValue * math.pi) * 0.6).clamp(0.0, 0.6),
-              child: Container(
-                width: particle.size,
-                height: particle.size,
-                decoration: BoxDecoration(
-                  color: particle.color,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: particle.color.withOpacity(0.5),
-                      blurRadius: 10,
-                    ),
-                  ],
+          ),
+          if (!_isVideoInitialized)
+            const Center(child: CircularProgressIndicator(color: Colors.white)),
+          if (_error != null)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  'Video error: ' + _error!,
+                  style: const TextStyle(color: Colors.redAccent),
                 ),
               ),
             ),
-          );
-        },
-      );
-    });
+        ],
+      ),
+    );
   }
 }
 
-class _Particle {
-  final Color color;
-  final double size;
-  final double offsetX;
-  final double offsetY;
-  final double speed;
+class _WhiteFormCard extends StatelessWidget {
+  final Widget child;
+  const _WhiteFormCard({required this.child});
 
-  _Particle({
-    required this.color,
-    required this.size,
-    required this.offsetX,
-    required this.offsetY,
-    required this.speed,
-  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 420,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x804C1D95),
+            blurRadius: 24,
+            offset: Offset(0, 12),
+          ),
+          BoxShadow(
+            color: Color(0x334C1D95),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }

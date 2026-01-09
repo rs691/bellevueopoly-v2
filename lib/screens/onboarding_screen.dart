@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../widgets/chamber_opoly_wordmark.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -67,7 +68,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         },
         children: [
           _buildOnboardingPage(
-            title: 'Welcome to BellEvueOPOLY',
+            title: 'Welcome to Chamber Opoly',
+            titleWidget: const ChamberOpolyWordmark(width: 240, hero: true),
             description:
                 'Discover the best rewards and experiences around Bellevue!',
             icon: Icons.location_on,
@@ -138,6 +140,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     required String description,
     required IconData icon,
     required LinearGradient gradient,
+    Widget? titleWidget,
   }) {
     return Container(
       decoration: BoxDecoration(gradient: gradient),
@@ -157,15 +160,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            // Title
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
+            titleWidget ??
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
             const SizedBox(height: AppSpacing.lg),
 
             // Description

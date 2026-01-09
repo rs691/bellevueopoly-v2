@@ -6,7 +6,7 @@ import '../widgets/async_image.dart';
 import '../widgets/gradient_background.dart';
 import '../theme/app_theme.dart';
 import '../router/app_router.dart';
-import 'dart:math' as math;
+// import 'dart:math' as math; // unused import
 
 class CheckinHistoryScreen extends StatelessWidget {
   const CheckinHistoryScreen({super.key});
@@ -208,11 +208,10 @@ class CheckinHistoryScreen extends StatelessWidget {
     final parts = [
       if (street != null && street.isNotEmpty) street,
       [if (city != null && city.isNotEmpty) city, if (state != null && state.isNotEmpty) state]
-          .where((e) => e != null && e.isNotEmpty)
           .join(', '),
       if (zip != null && zip.isNotEmpty) zip,
-    ].where((e) => e != null && e.isNotEmpty).toList();
-    return parts.join(' · ');
+    ];
+    return parts.where((e) => e.isNotEmpty).join(' · ');
   }
 
   String _format(DateTime dt) {

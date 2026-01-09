@@ -1,8 +1,10 @@
-import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/gradient_background.dart';
-import '../widgets/glassmorphic_card.dart'; // Assuming you might want to use this for the dialog
+import 'package:video_player/video_player.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../router/app_router.dart';
+import '../widgets/glassmorphic_card.dart';
 
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
@@ -11,334 +13,216 @@ class LandingScreen extends StatefulWidget {
   State<LandingScreen> createState() => _LandingScreenState();
 }
 
-class _LandingScreenState extends State<LandingScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _particleController;
-  final List<_Particle> _particles = [];
+class _LandingScreenState extends State<LandingScreen> {
+  late final VideoPlayerController _controller;
+  bool _isVideoInitialized = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _particleController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-    _initializeParticles();
+    _initializeVideo();
   }
 
-  void _initializeParticles() {
-    for (int i = 0; i < 15; i++) {
-      _particles.add(
-        _Particle(
-          color: _getRandomColor(),
-          size: math.Random().nextDouble() * 15 + 5,
-          offsetX: math.Random().nextDouble(),
-          offsetY: math.Random().nextDouble(),
-          speed: math.Random().nextDouble() * 0.4 + 0.2,
-        ),
-      );
+  Future<void> _initializeVideo() async {
+    try {
+      _controller = VideoPlayerController.asset('assets/background.mp4');
+      await _controller.initialize();
+      await _controller.setLooping(true);
+      await _controller.setVolume(0);
+      await _controller.play();
+
+      if (mounted) {
+        setState(() {
+          _isVideoInitialized = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+        });
+      }
     }
-  }
-
-  Color _getRandomColor() {
-    final colors = [
-      Colors.pinkAccent.withValues(alpha: 0.3),
-      Colors.purpleAccent.withValues(alpha: 0.3),
-      Colors.orangeAccent.withValues(alpha: 0.3),
-    ];
-    return colors[math.Random().nextInt(colors.length)];
   }
 
   @override
   void dispose() {
-    _particleController.dispose();
+    _controller.dispose();
     super.dispose();
+  }
+
+  void _handlePlayTap() {
+    context.go(AppRoutes.login);
+  }
+
+  void _handleCreateAccount() {
+    context.go(AppRoutes.welcome);
   }
 
   @override
   Widget build(BuildContext context) {
-    return GradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            // Particle Animation
-            ..._buildParticles(),
-            // Main UI Content
-            SafeArea(
+    if (_error != null) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Error loading video:\n$_error',
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (_isVideoInitialized) _buildVideoBackground(),
+          if (!_isVideoInitialized)
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0f172a), Color(0xFF111827)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.black.withOpacity(0.72),
+                  Colors.black.withOpacity(0.35),
+                ],
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+              ),
+            ),
+          ),
+          if (!_isVideoInitialized)
+            const Center(child: CircularProgressIndicator(color: Colors.white)),
+          SafeArea(
+            child: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Spacer(flex: 1),
-                  _buildStaticDice(),
-                  const SizedBox(height: 40),
-                  _buildStaticTitle(),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Roll the dice, explore your city',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const Spacer(flex: 1),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: _buildPlayNowButton(context),
-                  ),
-                  const SizedBox(height: 20),
+                  _buildTitle(),
+                  const SizedBox(height: 32),
+                  _buildGlassButton(),
+                  const SizedBox(height: 18),
                   TextButton(
-                    onPressed: () => context.go('/welcome'),
+                    onPressed: _handleCreateAccount,
                     child: const Text(
                       'Create Account',
                       style: TextStyle(
                         color: Colors.white70,
                         decoration: TextDecoration.underline,
+                        letterSpacing: 0.4,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
                 ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoBackground() {
+    return FittedBox(
+      fit: BoxFit.cover,
+      child: SizedBox(
+        width: _controller.value.size.width,
+        height: _controller.value.size.height,
+        child: VideoPlayer(_controller),
+      ),
+    );
+  }
+
+  Widget _buildGlassButton() {
+    return AnimatedGlassmorphicCard(
+      onTap: _handlePlayTap,
+      padding: EdgeInsets.zero,
+      child: SizedBox(
+        width: 320,
+        height: 90,
+        child: const Center(
+          child: Text(
+            'PLAY NOW',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 40,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Column(
+      children: [
+        Stack(
+          children: [
+            Text(
+              'CHAMBER',
+              style: GoogleFonts.luckiestGuy(
+                fontSize: 85,
+                letterSpacing: 2,
+                foreground: Paint()
+                  ..style = PaintingStyle.stroke
+                  ..strokeWidth = 10
+                  ..color = Colors.black,
+              ),
+            ),
+            Text(
+              'CHAMBER',
+              style: GoogleFonts.luckiestGuy(
+                fontSize: 85,
+                letterSpacing: 2,
+                color: Colors.white,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  List<Widget> _buildParticles() {
-    return _particles.map((particle) {
-      return AnimatedBuilder(
-        animation: _particleController,
-        builder: (context, child) {
-          final screenHeight = MediaQuery.of(context).size.height;
-          final animValue = (_particleController.value + particle.offsetY) % 1.0;
-          return Positioned(
-            left: MediaQuery.of(context).size.width * particle.offsetX,
-            top: screenHeight * animValue - particle.size,
-            child: Opacity(
-              opacity: (math.sin(animValue * math.pi) * 0.5).clamp(0.0, 0.5),
-              child: Container(
-                width: particle.size,
-                height: particle.size,
-                decoration: BoxDecoration(
-                  color: particle.color,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: particle.color.withValues(alpha: 0.4),
-                      blurRadius: 10,
-                    ),
-                  ],
+        Transform.translate(
+          offset: const Offset(0, -52),
+          child: Stack(
+            children: [
+              Text(
+                'OPOLY',
+                style: GoogleFonts.luckiestGuy(
+                  fontSize: 85,
+                  letterSpacing: 6,
+                  foreground: Paint()
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = 10
+                    ..color = Colors.black,
                 ),
               ),
-            ),
-          );
-        },
-      );
-    }).toList();
-  }
-
-  Widget _buildStaticDice() {
-    return Container(
-      width: 150,
-      height: 150,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFe879f9), Color(0xFF9333ea)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFec4899).withValues(alpha: 0.6),
-            blurRadius: 40,
-            spreadRadius: 5,
-          ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: const Icon(Icons.casino, size: 80, color: Colors.white),
-    );
-  }
-
-  Widget _buildStaticTitle() {
-    return Column(
-      children: [
-        Text(
-          'CHAMBER',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 48,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -1,
-            height: 0.9,
-            shadows: [
-              Shadow(
-                color: const Color(0xFFec4899).withValues(alpha: 0.8),
-                blurRadius: 20,
+              Text(
+                'OPOLY',
+                style: GoogleFonts.luckiestGuy(
+                  fontSize: 85,
+                  letterSpacing: 6,
+                  color: const Color(0xFFa78bfa),
+                ),
               ),
-              Shadow(
-                color: const Color(0xFFa855f7).withValues(alpha: 0.6),
-                blurRadius: 40,
-              ),
-              const Shadow(color: Colors.black38, offset: Offset(4, 4)),
-            ],
-          ),
-        ),
-        Text(
-          'OPOLY',
-          style: TextStyle(
-            color: const Color(0xFFa855f7),
-            fontSize: 48,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -1,
-            height: 0.9,
-            shadows: [
-              Shadow(
-                color: const Color(0xFFec4899).withValues(alpha: 0.8),
-                blurRadius: 20,
-              ),
-              Shadow(
-                color: const Color(0xFFa855f7).withValues(alpha: 0.6),
-                blurRadius: 40,
-              ),
-              const Shadow(color: Colors.black38, offset: Offset(4, 4)),
             ],
           ),
         ),
       ],
     );
   }
-
-  Widget _buildPlayNowButton(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 70,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFa855f7), Color(0xFF7c3aed)],
-        ),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.white, width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFa855f7).withValues(alpha: 0.5),
-            blurRadius: 30,
-            spreadRadius: 2,
-          ),
-          BoxShadow(
-            color: const Color(0xFFa855f7).withValues(alpha: 0.3),
-            blurRadius: 20,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showAuthPrompt(context),
-          borderRadius: BorderRadius.circular(15),
-          child: const Center(
-            child: Text(
-              'PLAY NOW',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 2,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAuthPrompt(BuildContext context) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Authentication',
-      transitionDuration: const Duration(milliseconds: 500),
-      pageBuilder: (context, animation, secondaryAnimation) => const SizedBox(),
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        final tween = Tween<double>(begin: 0.8, end: 1.0);
-        return ScaleTransition(
-          scale: tween.animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeInOutBack),
-          ),
-          child: FadeTransition(
-            opacity: animation,
-            child: AlertDialog(
-              backgroundColor: Colors.transparent,
-              contentPadding: EdgeInsets.zero,
-              content: GlassmorphicCard(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Join the Adventure!',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Please create an account or log in to start playing.',
-                        style: TextStyle(color: Colors.white70),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          context.go('/login');
-                        },
-                        child: const Text('Log In'),
-                      ),
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          context.go('/register');
-                        },
-                        child: const Text('Create Account'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
-
-class _Particle {
-  final Color color;
-  final double size;
-  final double offsetX;
-  final double offsetY;
-  final double speed;
-
-  _Particle({
-    required this.color,
-    required this.size,
-    required this.offsetX,
-    required this.offsetY,
-    required this.speed,
-  });
-}
-

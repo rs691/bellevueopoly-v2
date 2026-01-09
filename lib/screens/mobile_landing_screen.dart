@@ -1,198 +1,482 @@
+import 'dart:math' as math;
+import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/navigation_box.dart';
-import '../widgets/stat_card.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../router/app_router.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
 import '../providers/user_data_provider.dart';
 
-class MobileLandingScreen extends ConsumerWidget {
+class MobileLandingScreen extends ConsumerStatefulWidget {
   const MobileLandingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MobileLandingScreen> createState() => _MobileLandingScreenState();
+}
+
+class _MobileLandingScreenState extends ConsumerState<MobileLandingScreen> {
+  late Timer _timer;
+  late DateTime _endTime;
+  int _days = 7;
+  int _hours = 0;
+  int _minutes = 0;
+  String? _randomBusinessName;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set end time to 1 week from now
+    _endTime = DateTime.now().add(const Duration(days: 7));
+    _updateCountdown();
+    
+    // Update countdown every second
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateCountdown();
+    });
+    
+    // Fetch random business
+    _fetchRandomBusiness();
+  }
+
+  void _updateCountdown() {
+    final now = DateTime.now();
+    final remaining = _endTime.difference(now);
+    
+    if (remaining.isNegative) {
+      _days = 0;
+      _hours = 0;
+      _minutes = 0;
+    } else {
+      _days = remaining.inDays;
+      _hours = remaining.inHours % 24;
+      _minutes = remaining.inMinutes % 60;
+    }
+    
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _fetchRandomBusiness() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('businesses')
+          .get();
+      
+      if (snapshot.docs.isNotEmpty) {
+        final randomDoc = snapshot.docs[math.Random().nextInt(snapshot.docs.length)];
+        final businessName = randomDoc['name'] as String?;
+        
+        if (mounted) {
+          setState(() {
+            _randomBusinessName = businessName ?? 'Bellevue';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _randomBusinessName = 'Bellevue';
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userDataAsync = ref.watch(userDataProvider);
 
+    // Helper function to build countdown timer
+    Widget buildCountdownTimer() {
+      return Text(
+        '$_days Days ${_hours.toString().padLeft(2, '0')}h ${_minutes.toString().padLeft(2, '0')}m',
+        style: GoogleFonts.baloo2(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+          shadows: const [
+            Shadow(
+              color: Colors.black26,
+              offset: Offset(0, 1),
+              blurRadius: 2,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Helper function to build footer
+    Widget buildFooter() {
+      final businessName = _randomBusinessName ?? 'Bellevue';
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$businessName Opoly',
+            style: GoogleFonts.baloo2(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              shadows: const [
+                Shadow(
+                  color: Colors.black26,
+                  offset: Offset(0, 1),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+          ),
+          Text(
+            'is brought to you by',
+            style: GoogleFonts.baloo2(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withOpacity(0.9),
+              shadows: const [
+                Shadow(
+                  color: Colors.black26,
+                  offset: Offset(0, 1),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Helper function to build positioned pentagon
+    Positioned buildPositionedPentagon({
+      required int index,
+      required int count,
+      required double centerX,
+      required double centerY,
+      required double radius,
+      required double tileSize,
+      required Widget child,
+    }) {
+      final double angleDeg = -90 + (360 / count) * index;
+      final double angleRad = angleDeg * math.pi / 180.0;
+      final double x = centerX + radius * math.cos(angleRad) - tileSize / 2;
+      final double y = centerY + radius * math.sin(angleRad) - tileSize / 2;
+      return Positioned(left: x, top: y, child: child);
+    }
+
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Welcome Back'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: userDataAsync.when(
+          data: (userDoc) {
+            if (userDoc == null || !userDoc.exists) {
+              return Text(
+                'Welcome Back',
+                style: GoogleFonts.baloo2(
+                  fontSize: 38,
+                  fontWeight: FontWeight.w600,
+                ),
+              );
+            }
+            final user = userDoc.data() as Map<String, dynamic>;
+            final String username = (user['username'] is String)
+                ? user['username']
+                : 'Friend';
+            return Text(
+              'Welcome Back, $username!',
+              style: GoogleFonts.baloo2(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+              ),
+            );
+          },
+          loading: () => Text(
+            'Welcome Back',
+            style: GoogleFonts.baloo2(
+              fontSize: 34,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          error: (_, __) => Text(
+            'Welcome Back',
+            style: GoogleFonts.baloo2(
+              fontSize: 34,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
         centerTitle: true,
         automaticallyImplyLeading: false, // Prevents back button on home
+        toolbarHeight: 80, // Increased height to center between top and nav boxes
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Hero section with daily challenge
-            _buildHeroSection(context),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+          final minSide = width < height ? width : height;
+          // Tile size optimized for mobile touch targets (min 48px tap area)
+          final tileSize = (minSide * 0.26).clamp(120.0, 200.0);
+          final radius = (minSide * 0.34);
+          final centerX = width / 2;
+          // Account for bottom navbar by centering in available space
+          final navbarHeight = 72 + 32; // navbar height + margins
+          final availableHeight = height - navbarHeight;
+          final centerY = availableHeight / 2;
 
-            // Quick stats section
-            userDataAsync.when(
-              data: (userDoc) {
-                if (userDoc == null || !userDoc.exists) {
-                  return const SizedBox.shrink();
-                }
-                final user = userDoc.data() as Map<String, dynamic>;
-                return _buildQuickStats(context, user);
-              },
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
+          List<_PentagonItem> items = [
+            _PentagonItem(
+              Icons.star_outline,
+              'Stop Hub',
+              () => context.go(AppRoutes.stopHub),
             ),
+            _PentagonItem(
+              Icons.location_on_outlined,
+              'Near Me',
+              () => context.go(AppRoutes.nearMe),
+            ),
+            _PentagonItem(
+              Icons.emoji_events_outlined,
+              'Prizes',
+              () => context.go(AppRoutes.prizes),
+            ),
+            _PentagonItem(
+              Icons.help_outline,
+              'FAQs',
+              () => context.go(AppRoutes.rulesAndPrizes),
+            ),
+            _PentagonItem(
+              Icons.person_outline,
+              'My Account',
+              () => context.go(AppRoutes.profile),
+            ),
+          ];
 
-            // Navigation grid
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16.0,
-                mainAxisSpacing: 16.0,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+          return Center(
+            child: SizedBox(
+              width: width,
+              height: height,
+              child: Stack(
                 children: [
-                  // 1. Stop Hub (Business Categories)
-                  NavigationBox(
-                    icon: Icons.star,
-                    label: 'Stop Hub',
-                    onTap: () => context.go(AppRoutes.stopHub),
-                  ),
-                  // 2. Near Me (Map with nearby rewards)
-                  NavigationBox(
-                    icon: Icons.location_on,
-                    label: 'Near Me',
-                    onTap: () => context.go(AppRoutes.nearMe),
-                  ),
-
-                  // 3. Prizes
-                  NavigationBox(
-                    icon: Icons.emoji_events,
-                    label: 'Prizes',
-                    onTap: () => context.go(AppRoutes.prizes),
-                  ),
-
-                  // 4. FAQs (in Rules & Prizes screen)
-                  NavigationBox(
-                    icon: Icons.help,
-                    label: 'FAQs',
-                    onTap: () => context.go(AppRoutes.rulesAndPrizes),
-                  ),
-
-                  // 5. My Account / Profile
-                  NavigationBox(
-                    icon: Icons.person,
-                    label: 'My Account',
-                    onTap: () => context.go(AppRoutes.profile),
+                  // Nav boxes in center
+                  for (int i = 0; i < items.length; i++) ...[
+                    buildPositionedPentagon(
+                      index: i,
+                      count: items.length,
+                      centerX: centerX,
+                      centerY: centerY,
+                      radius: radius,
+                      tileSize: tileSize,
+                      child: _buildTile(items[i], tileSize),
+                    ),
+                  ],
+                  // Countdown Timer and Footer at Bottom
+                  Positioned(
+                    bottom: 20,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          buildCountdownTimer(),
+                          const SizedBox(height: 12),
+                          buildFooter(),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTile(_PentagonItem item, double tileSize) {
+    return SizedBox(
+      width: tileSize,
+      height: tileSize,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24), // Match navbar radius
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15), // Match navbar blur
+          child: Container(
+            decoration: BoxDecoration(
+              // Match navbar gradient
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white.withOpacity(0.4),
+                  Colors.white.withOpacity(0.25),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.5),
+                width: 1.5,
+              ),
+              // Match navbar layered shadows
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 8),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.1),
+                  blurRadius: 40,
+                  offset: const Offset(0, 10),
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: item.onTap,
+                borderRadius: BorderRadius.circular(24),
+                splashColor: Colors.white.withOpacity(0.3),
+                highlightColor: Colors.white.withOpacity(0.15),
+                child: Center(
+                  child: _buildTileContent(item, tileSize),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeroSection(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      margin: const EdgeInsets.only(
-        left: AppSpacing.md,
-        right: AppSpacing.md,
-        top: AppSpacing.md,
-        bottom: AppSpacing.md,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primaryBlue.withOpacity(0.9),
-            AppColors.primaryPurple.withOpacity(0.8),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(AppSpacing.lg),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryBlue.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildTileContent(_PentagonItem item, double tileSize) {
+    final words = item.label.split(' ');
+    
+    if (words.length > 1) {
+      // Multi-word: text above, icon center, text below
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.flash_on, color: Colors.amber, size: 24),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                'Daily Challenge',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+          Text(
+            words[0],
+            textAlign: TextAlign.center,
+            style: GoogleFonts.baloo2(
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              fontSize: 18,
+              letterSpacing: 0.5,
+              shadows: const [
+                Shadow(
+                  color: Colors.black26,
+                  offset: Offset(0, 1),
+                  blurRadius: 2,
                 ),
+              ],
+            ),
+          ),
+          SizedBox(height: tileSize * 0.04),
+          Icon(
+            item.icon,
+            size: 32,
+            color: Colors.white,
+            shadows: const [
+              Shadow(
+                color: Colors.black26,
+                offset: Offset(0, 1),
+                blurRadius: 2,
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
+          SizedBox(height: tileSize * 0.04),
           Text(
-            'Visit 5 different businesses today and earn 250 bonus points!',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
-              height: 1.5,
+            words.sublist(1).join(' '),
+            textAlign: TextAlign.center,
+            style: GoogleFonts.baloo2(
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              fontSize: 18,
+              letterSpacing: 0.5,
+              shadows: const [
+                Shadow(
+                  color: Colors.black26,
+                  offset: Offset(0, 1),
+                  blurRadius: 2,
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.sm),
-            child: LinearProgressIndicator(
-              value: 0.4, // 2 out of 5 visited
-              minHeight: 8,
-              backgroundColor: Colors.white24,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber.shade300),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            '2 of 5 visits completed',
-            style: Theme.of(
-              context,
-            ).textTheme.labelSmall?.copyWith(color: Colors.white70),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildQuickStats(BuildContext context, Map<String, dynamic> user) {
-    final int points = (user['points'] as num?)?.toInt() ?? 0;
-    final int visits = (user['visits'] as num?)?.toInt() ?? 0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.md,
-      ),
-      child: Row(
+      );
+    } else {
+      // Single word: text on top, icon on bottom
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: MiniStat(
-              label: 'Points',
-              value: points.toString(),
-              color: Colors.amber,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                item.label,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.baloo2(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  fontSize: 18,
+                  letterSpacing: 0.5,
+                  shadows: const [
+                    Shadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 1),
+                      blurRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: MiniStat(
-              label: 'Visits',
-              value: visits.toString(),
-              color: Colors.blue,
-            ),
+          SizedBox(height: tileSize * 0.06),
+          Icon(
+            item.icon,
+            size: 32,
+            color: Colors.white,
+            shadows: const [
+              Shadow(
+                color: Colors.black26,
+                offset: Offset(0, 1),
+                blurRadius: 2,
+              ),
+            ],
           ),
         ],
-      ),
-    );
+      );
+    }
   }
 }
+class _PentagonItem {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  _PentagonItem(this.icon, this.label, this.onTap);
+}
+

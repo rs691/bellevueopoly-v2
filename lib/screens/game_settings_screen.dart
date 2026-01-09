@@ -79,9 +79,9 @@ class GameSettingsScreen extends ConsumerWidget {
           ),
           const AboutListTile(
              icon: Icon(Icons.info),
-             applicationName: 'Bellevueopoly',
+             applicationName: 'Chamber Opoly',
              applicationVersion: '1.0.0',
-             applicationLegalese: '© 2024 Bellevueopoly',
+             applicationLegalese: '© 2024 Chamber Opoly',
           ),
         ],
       ),

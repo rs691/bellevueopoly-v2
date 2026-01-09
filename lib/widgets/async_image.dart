@@ -81,6 +81,7 @@ class _AsyncImageState extends State<AsyncImage> {
       }
     } catch (e) {
       debugPrint('Error resolving storage URL "$url": $e');
+      // On web with CORS issues, gracefully fall back to placeholder
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -118,12 +119,24 @@ class _AsyncImageState extends State<AsyncImage> {
         width: widget.width,
         height: widget.height,
         fit: widget.fit,
+        maxHeightDiskCache: 200,
+        maxWidthDiskCache: 200,
+        errorListener: (error) {
+          // Prevent retries by setting error state
+          if (mounted) {
+            setState(() {
+              _hasError = true;
+              _resolvedUrl = null;
+            });
+          }
+        },
         placeholder: (context, url) => Container(
+          width: widget.width,
+          height: widget.height,
           color: Colors.grey[200],
-          child: const Center(child: CircularProgressIndicator()),
+          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
         ),
         errorWidget: (context, url, error) {
-          debugPrint('Error loading cached image: $error');
           return _buildPlaceholder();
         },
       );

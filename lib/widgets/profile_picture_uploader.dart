@@ -45,13 +45,12 @@ class _ProfilePictureUploaderState
       setState(() => _isUploading = true);
 
       // Upload based on platform
-      String downloadUrl;
       if (kIsWeb) {
         final bytes = await image.readAsBytes();
-        downloadUrl = await _storageService.uploadProfilePicture(bytes);
+        await _storageService.uploadProfilePicture(bytes);
       } else {
         final file = File(image.path);
-        downloadUrl = await _storageService.uploadProfilePicture(file);
+        await _storageService.uploadProfilePicture(file);
       }
 
       // Clean up old profile pictures
@@ -66,7 +65,7 @@ class _ProfilePictureUploaderState
         );
 
         // Refresh user data to show new profile picture
-        ref.refresh(userDataProvider);
+        ref.invalidate(userDataProvider);
         widget.onUploadComplete?.call();
       }
     } catch (e) {

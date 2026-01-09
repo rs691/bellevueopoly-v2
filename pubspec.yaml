@@ -63,12 +63,16 @@ dependencies:
   firebase_in_app_messaging: ^0.9.0+5
   qr_flutter: ^4.1.0
   device_info_plus: ^11.1.1
+  video_player: ^2.9.2
+  flutter_glass_morphism: ^1.0.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_native_splash: ^2.4.1
 
 # Code generation for Freezed and JSON Serializable
 # USE STABLE VERSIONS
@@ -103,10 +107,25 @@ flutter:
     - assets/images/error_state.png
     - assets/images/splash_image.png
     - assets/images/google_logo.png
+    # - assets/images/app_gradient_bg.png  # Uncomment when file is added
+    - assets/gradientBack.png
     - assets/icons/heart_filled.png
     - assets/icons/heart_outline.png
     - assets/data/businesses.json
     - assets/data/config.json
+    - assets/splash.png
+    - assets/background.mp4
+    - assets/gradientBack.png
+    - assets/background3.png
+    - assets/textFace.png
+    - assets/assets/images/no_image_available.png
+flutter_native_splash:
+  color: "#000000"
+  image: assets/splash.png
+  android_12:
+    color: "#000000"
+    image: assets/splash.png
+  web: true
 
 
     # OR simply: - assets/data/
