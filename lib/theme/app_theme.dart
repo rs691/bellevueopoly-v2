@@ -16,7 +16,7 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: primaryPurple,
       brightness: Brightness.dark,
-      primary: accentGreen,
+      primary: Color(0xFF9A438A),
       secondary: accentOrange,
     ).copyWith(
       surface: navBarBackground,
